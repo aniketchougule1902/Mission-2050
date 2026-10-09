@@ -4,22 +4,31 @@ import {HDRLoader} from '/vendor/HDRLoader.js';
 import {adventureController} from './controller.js';
 import {districts,roads,LAB_X,LAB_Z} from './layout.js';
 export function createWorld(canvas,onFPS){
- const renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
- renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
- renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1;renderer.outputColorSpace=T.SRGBColorSpace;
+ const renderer=new T.WebGLRenderer({canvas,antialias:false,alpha:false,stencil:false,powerPreference:'high-performance'});
+ renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=false; // baked ground/contact shadows: no expensive GPU shadow passes
+ renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.16;renderer.outputColorSpace=T.SRGBColorSpace;
  const scene=new T.Scene();scene.background=new T.Color(0xa5b3bd);scene.fog=new T.Fog(0xb1bcc3,170,680);
  const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.08,1100),city=new T.Group(),lab=new T.Group();scene.add(city,lab);lab.visible=false;lab.position.set(LAB_X,0,LAB_Z);
- const hemi=new T.HemisphereLight(0xc2d4ed,0x5b4932,1.25);scene.add(hemi);
- const sun=new T.DirectionalLight(0xffe2bd,3);sun.position.set(-50,75,30);sun.castShadow=false;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-55,right:55,top:55,bottom:-55,near:.5,far:220});sun.shadow.bias=-.00025;sun.shadow.normalBias=.03;scene.add(sun,sun.target);
- new HDRLoader().load('/models/venice_sunset_1k.hdr',hdr=>{hdr.mapping=T.EquirectangularReflectionMapping;scene.environment=hdr;scene.environmentIntensity=.55;});
- const textureLoader=new T.TextureLoader();function pbr(name,colour=0xffffff){const maps={};for(const [key,suffix] of [['map','Diffuse'],['normalMap','nor_gl'],['roughnessMap','Rough']]){const tex=textureLoader.load('/textures/'+name+'_'+suffix+'.jpg');tex.wrapS=tex.wrapT=T.RepeatWrapping;tex.anisotropy=8;if(key==='map')tex.colorSpace=T.SRGBColorSpace;maps[key]=tex;}return new T.MeshStandardMaterial({color:colour,...maps,roughness:.87,normalScale:new T.Vector2(.6,.6)});}
+ const hemi=new T.HemisphereLight(0xe7eef1,0x777b62,1.25);scene.add(hemi);
+ const sun=new T.DirectionalLight(0xffe7cb,2.6);sun.position.set(-50,75,30);sun.castShadow=false;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-55,right:55,top:55,bottom:-55,near:.5,far:220});sun.shadow.bias=-.00025;sun.shadow.normalBias=.03;scene.add(sun,sun.target);
+ // Defer HDR environment conversion until after the first interactive frame.
+ const loadEnvironment=()=>new HDRLoader().load('/models/venice_sunset_1k.hdr',hdr=>{hdr.mapping=T.EquirectangularReflectionMapping;scene.environment=hdr;scene.environmentIntensity=.45;},undefined,()=>{});
+ if((navigator.deviceMemory||8)>4){if('requestIdleCallback' in window)requestIdleCallback(loadEnvironment,{timeout:3500});else setTimeout(loadEnvironment,1300);}
+ const textureLoader=new T.TextureLoader();function pbr(name,colour=0xffffff){const maps={};for(const [key,suffix] of [['map','Diffuse'],['normalMap','nor_gl'],['roughnessMap','Rough']]){const tex=textureLoader.load('/textures/'+name+'_'+suffix+'.jpg');tex.wrapS=tex.wrapT=T.RepeatWrapping;tex.anisotropy=4;if(key==='map')tex.colorSpace=T.SRGBColorSpace;maps[key]=tex;}return new T.MeshStandardMaterial({color:colour,...maps,roughness:.87,normalScale:new T.Vector2(.6,.6)});}
  const asphalt=pbr('asphalt_02',0xababab),brick=pbr('brick_wall_001',0xcac0b2),concrete=pbr('concrete',0xd2d0c8),pavement=pbr('pavement_01',0xc9c9c1),grass=pbr('grass_ground');
  const cream=new T.MeshStandardMaterial({color:0xbdb5a8,roughness:.9,map:concrete.map,normalMap:concrete.normalMap}),dark=new T.MeshStandardMaterial({color:0x252e32,roughness:.8}),metal=new T.MeshStandardMaterial({color:0x67757a,metalness:.8,roughness:.36});
  const glass=new T.MeshStandardMaterial({color:0x273d46,metalness:.6,roughness:.18}),frame=new T.MeshStandardMaterial({color:0xd5d5cc,metalness:.25,roughness:.6});
  const decorations=[],obstacles=[],staticMeshes=[],geometryCache=new Map(),unit=new T.BoxGeometry(1,1,1);let serial=0;
  function box(x,y,z,w,h,d,mat,parent=city,collide=false){const geoKey=mat.map?[w,h,d].join(','):'unit';let geo=geometryCache.get(geoKey);if(!geo){geo=mat.map?unit.clone():unit;geometryCache.set(geoKey,geo);if(mat.map){const uv=geo.attributes.uv,n=geo.attributes.normal;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*(Math.abs(n.getX(i))>.5?d:w)/3,uv.getY(i)*(Math.abs(n.getY(i))>.5?d:h)/3);}}const m=new T.Mesh(geo,mat);m.position.set(x,y+h/2,z);m.scale.set(w,h,d);m.castShadow=w>4&&d>4&&h>.3;m.receiveShadow=true;parent.add(m);staticMeshes.push(m);if(collide)obstacles.push({x,z,w:w/2,d:d/2,h:y+h});return m;}
  function cyl(x,y,z,r,h,mat,parent=city){const m=new T.Mesh(new T.CylinderGeometry(r,r,h,12),mat);m.position.set(x,y+h/2,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
- function sign(text,x,y,z,width=5,parent=city,colour='#d6e4e5'){const c=document.createElement('canvas');c.width=1024;c.height=160;const ctx=c.getContext('2d');ctx.fillStyle='#172529';ctx.fillRect(0,0,1024,160);ctx.fillStyle=colour;ctx.font='600 66px Arial';ctx.textAlign='center';ctx.fillText(text,512,106);const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;const m=new T.Mesh(new T.PlaneGeometry(width,width*.156),new T.MeshBasicMaterial({map:tex}));m.position.set(x,y,z);parent.add(m);return m;}
+ const signCache=new Map();
+ function sign(text,x,y,z,width=5,parent=city,colour='#d6e4e5'){
+  // Reuse a tiny atlas of labelled materials instead of allocating a 1024x160
+  // GPU texture + canvas for every building (dozens of duplicate signs).
+  const key=text+'|'+colour;let material=signCache.get(key);
+  if(!material){const c=document.createElement('canvas');c.width=512;c.height=96;const ctx=c.getContext('2d');ctx.fillStyle='#172529';ctx.fillRect(0,0,512,96);ctx.fillStyle=colour;ctx.font='bold 33px Arial';ctx.textAlign='center';ctx.fillText(text,256,63,495);const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;material=new T.MeshBasicMaterial({map:tex,side:T.DoubleSide});signCache.set(key,material);}
+  const m=new T.Mesh(new T.PlaneGeometry(width,width*.156),material);m.position.set(x,y,z);parent.add(m);return m;
+ }
  box(0,-.24,0,690,.24,690,concrete);
  for(const r of roads){box(r,.01,0,14,.04,660,asphalt);box(0,.014,r,660,.04,14,asphalt);for(const side of [-1,1]){box(r+side*9,.03,0,3.7,.18,660,pavement);box(0,.03,r+side*9,660,.18,3.7,pavement);box(r+side*7,.02,0,.23,.32,660,cream);box(0,.02,r+side*7,660,.32,.23,cream);}for(let z=-320;z<=320;z+=10){box(r,.06,z,.15,.008,4,frame);box(z,.066,r,4,.008,.15,frame);}}
  for(const d of districts){const len=Math.hypot(...d.center),road=box(d.center[0]/2,.06,d.center[1]/2,10,.025,len,asphalt);road.rotation.y=Math.atan2(d.center[0],d.center[1]);}
@@ -52,10 +61,67 @@ export function createWorld(canvas,onFPS){
  for(const o of obstacles.slice(firstSiteObstacle)){o.x+=LAB_X;o.z+=LAB_Z;}
  sign('SECURITY / AUTHORISED FIELD STAFF',0,2.3,13.2,7,site);
  const gates=[];districts.forEach((d,i)=>{if(!i)return;const l=Math.hypot(...d.center),g=new T.Group();g.position.set(d.center[0]/l*43,0,d.center[1]/l*43);g.rotation.y=Math.atan2(d.center[0],d.center[1]);city.add(g);const door=box(0,.4,0,11,2.4,.15,new T.MeshStandardMaterial({color:0x4b5760,metalness:.6,roughness:.35}),g);for(const x of [-6,6]){box(x,0,0,.3,3.6,.4,metal,g);box(x,2.5,0,.36,.8,.45,new T.MeshBasicMaterial({color:0xdd6e46}),g);}gates.push({root:g,door,level:i});});
- const loader=new GLTFLoader(),treePositions=[];for(let i=0;i<28;i++){const x=100+(i%6)*6,z=-99-Math.floor(i/6)*8;treePositions.push([x,z]);obstacles.push({x,z,w:.35,d:.35,h:8});}for(let i=0;i<32;i++)treePositions.push([-70+(i%8)*20,49+Math.floor(i/8)*55]);
- loader.load('/models/island_tree_01.glb',gltf=>{const source=gltf.scene,bb=new T.Box3().setFromObject(source),scale=8/bb.getSize(new T.Vector3()).y;source.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;}});for(const [x,z] of treePositions){const t=source.clone(true);t.position.set(x,-bb.min.y*scale,z);t.rotation.y=x*.2;t.scale.setScalar(scale*(.85+(Math.abs(x+z)%7)/25));city.add(t);decorations.push(t);}},undefined,()=>{});
- loader.load('/models/street_lamp_01.glb',gltf=>{const b=new T.Box3().setFromObject(gltf.scene),s=6/b.getSize(new T.Vector3()).y;for(let i=0;i<56;i++){const m=gltf.scene.clone(true);m.scale.setScalar(s);m.position.set(i%2?10:-10,-b.min.y*s,-250+i*9);m.rotation.y=i%2?Math.PI:0;city.add(m);decorations.push(m);}},undefined,()=>{});
- loader.load('/models/concrete_road_barrier.glb',gltf=>{const b=new T.Box3().setFromObject(gltf.scene),s=2.7/b.getSize(new T.Vector3()).x;for(const [x,z] of [[-26,7],[-42,4],[195,65],[229,73]]){const m=gltf.scene.clone(true);m.scale.setScalar(s);m.position.set(x,-b.min.y*s,z);city.add(m);decorations.push(m);}},undefined,()=>{});
+ 
+ const loader=new GLTFLoader(),treePositions=[];
+ for(let i=0;i<28;i++){const x=100+(i%6)*6,z=-99-Math.floor(i/6)*8;treePositions.push([x,z]);obstacles.push({x,z,w:.35,d:.35,h:8});}
+ for(let i=0;i<32;i++)treePositions.push([-70+(i%8)*20,49+Math.floor(i/8)*55]);
+ // Distance-based chunks keep instanced scans out of the GPU frustum when far away.
+ function chunks(places){
+  const map=new Map();for(const p of places){const k=Math.floor(p.x/60)+','+Math.floor(p.z/60);if(!map.has(k))map.set(k,[]);map.get(k).push(p);}return map.values();
+ }
+ function fixAssetMaterials(scene,foliage=false){
+  scene.traverse(n=>{if(!n.isMesh)return;for(const mat of (Array.isArray(n.material)?n.material:[n.material])){if(!mat)continue;if(mat.map)mat.map.colorSpace=T.SRGBColorSpace;if(foliage){mat.side=T.DoubleSide;mat.alphaTest=mat.transparent?0.15:mat.alphaTest;}mat.needsUpdate=true;}});
+ }
+ function scanInstances(url,places,metres,axis='y',foliage=false,onFail=()=>{}){
+  loader.load(url,gltf=>{
+   const source=gltf.scene;fixAssetMaterials(source,foliage);source.updateMatrixWorld(true);
+   const bounds=new T.Box3().setFromObject(source),dimensions=bounds.getSize(new T.Vector3()),denominator=axis==='x'?dimensions.x:dimensions.y;
+   if(!Number.isFinite(denominator)||denominator<.001){onFail();return;}
+   const base=metres/denominator,primitives=[];
+   source.traverse(node=>{if(node.isMesh&&!node.isSkinnedMesh)primitives.push(node);});
+   if(!primitives.length){onFail();return;}
+   const origin=new T.Vector3(),scale=new T.Vector3(),orientation=new T.Quaternion(),up=new T.Vector3(0,1,0),placement=new T.Matrix4(),combined=new T.Matrix4();
+   for(const batch of chunks(places)){const x0=batch.reduce((a,p)=>a+p.x,0)/batch.length,z0=batch.reduce((a,p)=>a+p.z,0)/batch.length;
+    const group=new T.Group();group.position.set(x0,0,z0);
+    for(const primitive of primitives){
+     const instances=new T.InstancedMesh(primitive.geometry,primitive.material,batch.length);
+     for(let i=0;i<batch.length;i++){const p=batch[i],factor=base*(p.scale??1);origin.set(p.x-x0,-bounds.min.y*factor,p.z-z0);scale.setScalar(factor);orientation.setFromAxisAngle(up,p.yaw||0);placement.compose(origin,orientation,scale);combined.multiplyMatrices(placement,primitive.matrixWorld);instances.setMatrixAt(i,combined);}
+     instances.instanceMatrix.needsUpdate=true;instances.computeBoundingSphere();instances.castShadow=false;instances.receiveShadow=true;group.add(instances);
+    }
+    city.add(group);decorations.push(group);
+   }
+  },undefined,onFail);
+ }
+ // Lightweight physical foliage replaces most expensive scanned copies.
+ const stemsGeo=new T.CylinderGeometry(.22,.3,4.2,7),canopyGeo=new T.IcosahedronGeometry(1,1);
+ const stemMat=new T.MeshStandardMaterial({color:0x755b42,roughness:1}),canopyMat=new T.MeshStandardMaterial({color:0x478958,roughness:.9,side:T.DoubleSide});
+ function simpleTrees(places){
+  const matrix=new T.Matrix4(),pos=new T.Vector3(),quat=new T.Quaternion(),scale=new T.Vector3();
+  for(const batch of chunks(places)){const x0=batch.reduce((a,p)=>a+p.x,0)/batch.length,z0=batch.reduce((a,p)=>a+p.z,0)/batch.length;
+   const group=new T.Group();group.position.set(x0,0,z0);
+   const stem=new T.InstancedMesh(stemsGeo,stemMat,batch.length),crown=new T.InstancedMesh(canopyGeo,canopyMat,batch.length);
+   batch.forEach((p,i)=>{const variation=p.scale??1;pos.set(p.x-x0,2.1*variation,p.z-z0);scale.set(variation,variation,variation);matrix.compose(pos,quat,scale);stem.setMatrixAt(i,matrix);
+    pos.y=6.1*variation;scale.set(2.1*variation,2.4*variation,1.95*variation);matrix.compose(pos,quat,scale);crown.setMatrixAt(i,matrix);
+    crown.setColorAt(i,new T.Color().setHSL(.28+(i%5)*.012,.24+(i%3)*.04,.28+(i%4)*.03));});
+   stem.instanceMatrix.needsUpdate=true;crown.instanceMatrix.needsUpdate=true;stem.computeBoundingSphere();crown.computeBoundingSphere();group.add(stem,crown);city.add(group);decorations.push(group);
+  }
+ }
+ const trees=treePositions.map(([x,z],i)=>({x,z,yaw:x*.2,scale:.85+(Math.abs(x+z)%7)/25}));
+ const scanned=trees.filter((p,i)=>i%3===0),simplified=trees.filter((p,i)=>i%3!==0);
+ simpleTrees(simplified);
+ scanInstances('/models/island_tree_01.glb',scanned,8,'y',true,()=>simpleTrees(scanned));
+ const lamps=Array.from({length:56},(_,i)=>({x:i%2?10:-10,z:-250+i*9,yaw:i%2?Math.PI:0}));
+ scanInstances('/models/street_lamp_01.glb',lamps,6,'y',false,()=>{});
+ // Emissive lamp heads simulate the illuminated bulbs without 56 point-light passes.
+ const bulbGeo=new T.SphereGeometry(.16,8,6),bulbMat=new T.MeshBasicMaterial({color:0xffe4ab});
+ for(const batch of chunks(lamps)){const x0=batch.reduce((a,p)=>a+p.x,0)/batch.length,z0=batch.reduce((a,p)=>a+p.z,0)/batch.length;
+  const group=new T.Group();group.position.set(x0,0,z0);const bulbs=new T.InstancedMesh(bulbGeo,bulbMat,batch.length);
+  batch.forEach((p,i)=>{const mat=new T.Matrix4().makeTranslation(p.x-x0,5.6,p.z-z0);bulbs.setMatrixAt(i,mat);});
+  bulbs.instanceMatrix.needsUpdate=true;bulbs.computeBoundingSphere();group.add(bulbs);city.add(group);decorations.push(group);
+ }
+ const barriers=[[-26,7],[-42,4],[195,65],[229,73]].map(([x,z])=>({x,z}));
+ scanInstances('/models/concrete_road_barrier.glb',barriers,2.7,'x',false,()=>{});
+
  const labSteel=new T.MeshStandardMaterial({color:0x172a36,metalness:.72,roughness:.32}),labWall=new T.MeshStandardMaterial({color:0x435965,metalness:.45,roughness:.6}),strip=new T.MeshBasicMaterial({color:0x8cd8e7});
  box(0,-24.3,-5,36,.3,34,labSteel,lab);box(-18,-24,-5,.5,8,34,labWall,lab);box(18,-24,-5,.5,8,34,labWall,lab);box(0,-24,-22,36,8,.5,labWall,lab);box(0,-24,12,36,8,.5,labWall,lab);box(0,-16,-5,36,.3,34,labSteel,lab);
  for(let x=-16;x<=16;x+=4){box(x,-23.98,-5,.035,.012,34,metal,lab);box(x,-16.12,-5,.1,.1,34,strip,lab);for(let z=-20;z<=10;z+=4)box(x,-24,z,3.8,.022,3.8,new T.MeshStandardMaterial({color:(x+z)%8?0x263c49:0x304c59,metalness:.6,roughness:.28}),lab);}
