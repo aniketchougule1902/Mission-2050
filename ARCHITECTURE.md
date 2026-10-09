@@ -42,3 +42,7 @@ Stable events include menu.view, adventure.start, task.complete, stone.collect, 
 ## Release
 
 CI runs tests/build; build recreates only the verified project dist directory to prevent stale assets. Preview-smoke all local assets and API results on Vercel before promotion. Retain the previous deployment for rollback; no database migrations. ZIP excludes repository metadata, builds, raw scans, credentials and tool caches. Real newcomer/device checks, sustained frame pacing and bespoke art remain open production work.
+
+## Roadside security update (3.0.1)
+
+The research entrance and its entire underground lab are relocated to the block beside the main road, with elevator centre at x24,z32. Fencing leaves a clear pedestrian entrance; two security guards stand at the compound entrance and four surround the reactor. Parking and spawn are off the traffic lanes. Main-road traffic uses straight lane paths, heading derived from travel direction and corrected forward wheel rotation, without the old lab avoidance detour. Maps, proximity tasks, containment collision, cinematic cameras, stone effects and elevator shaft all share the translated research location. Older underground saves migrate once and retain progress.

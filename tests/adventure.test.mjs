@@ -14,3 +14,11 @@ test('Override remains a meaningful critical ending',()=>{let a=run(4);for(const
 test('Adventure checkpoint restores carried and installed stones',()=>{let a=run(2);for(const id of missions[2])a=act(a,id);const r=restoreAdventure(JSON.stringify(a));assert.equal(r.stone,2);assert.deepEqual(r.assembled,[0,1]);assert.equal(r.rules.stage,3);assert.equal(restoreAdventure('{'),null);assert.equal(restoreAdventure(JSON.stringify({...a,assembled:[1,0]})),null);});
 
 test('Carrying a rooftop stone preserves the descent ladder',()=>{let a=run(1);for(const id of missions[1])a=act(a,id);assert.ok(actionsFor(a).some(x=>x.id==='ladder'));assert.equal(actionsFor(act(a,'lift')).find(x=>x.id==='assemble').y,-24);});
+
+test('Old underground checkpoints migrate to the roadside research centre',()=>{
+ const a=act(freshAdventure(),'lift');delete a.layoutVersion;a.position=[0,-24,7];
+ const migrated=restoreAdventure(JSON.stringify(a));
+ assert.deepEqual(migrated.position,[24,-24,31]);assert.equal(migrated.layoutVersion,2);
+ assert.deepEqual(restoreAdventure(JSON.stringify(migrated)).position,migrated.position);
+ const ride=actionsFor(migrated).find(x=>x.id==='lift');assert.deepEqual([ride.x,ride.z],[24,32]);
+});

@@ -25,3 +25,7 @@ The 600-metre city has detailed procedural buildings with balconies, recessed wi
 This is a playable browser prototype with representative character assets and procedural buildings/vehicles. Bespoke realistic Asha/Meera, cinematic facial acting, GTA-level authored city art, and production device/playtest verification remain further production work. Live FPS depends on hardware. There are no accounts, multiplayer or purchases.
 
 See GAME_DESIGN.md, ARCHITECTURE.md, VALIDATION.md and CREDITS.md. Environmental and budget figures are fictional teaching units. Saans koi score nahi.
+
+## Roadside security update (3.0.1)
+
+The research entrance and its entire underground lab are relocated to the block beside the main road, with elevator centre at x24,z32. Fencing leaves a clear pedestrian entrance; two security guards stand at the compound entrance and four surround the reactor. Parking and spawn are off the traffic lanes. Main-road traffic uses straight lane paths, heading derived from travel direction and corrected forward wheel rotation, without the old lab avoidance detour. Maps, proximity tasks, containment collision, cinematic cameras, stone effects and elevator shaft all share the translated research location. Older underground saves migrate once and retain progress.

@@ -2,13 +2,13 @@ import * as T from '/vendor/three.module.js';
 import {GLTFLoader} from '/vendor/GLTFLoader.js';
 import {HDRLoader} from '/vendor/HDRLoader.js';
 import {adventureController} from './controller.js';
-import {districts,roads} from './layout.js';
+import {districts,roads,LAB_X,LAB_Z} from './layout.js';
 export function createWorld(canvas,onFPS){
  const renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
  renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
  renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1;renderer.outputColorSpace=T.SRGBColorSpace;
  const scene=new T.Scene();scene.background=new T.Color(0xa5b3bd);scene.fog=new T.Fog(0xb1bcc3,170,680);
- const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.08,1100),city=new T.Group(),lab=new T.Group();scene.add(city,lab);lab.visible=false;
+ const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.08,1100),city=new T.Group(),lab=new T.Group();scene.add(city,lab);lab.visible=false;lab.position.set(LAB_X,0,LAB_Z);
  const hemi=new T.HemisphereLight(0xc2d4ed,0x5b4932,1.25);scene.add(hemi);
  const sun=new T.DirectionalLight(0xffe2bd,3);sun.position.set(-50,75,30);sun.castShadow=false;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-55,right:55,top:55,bottom:-55,near:.5,far:220});sun.shadow.bias=-.00025;sun.shadow.normalBias=.03;scene.add(sun,sun.target);
  new HDRLoader().load('/models/venice_sunset_1k.hdr',hdr=>{hdr.mapping=T.EquirectangularReflectionMapping;scene.environment=hdr;scene.environmentIntensity=.55;});
@@ -43,7 +43,14 @@ export function createWorld(canvas,onFPS){
  for(let y=1;y<8;y+=3)for(let x=-120;x<-103;x+=4){box(x,y,-70.94,2.1,1.9,.09,dark);box(x,y+.1,-70.88,1.8,1.7,.05,glass);}for(const x of [-123,-101])box(x,9,-84,.1,.6,21,metal);box(-112,9,-95,22,.6,.1,metal);
  box(112,.02,-111,58,.06,55,grass);const water=new T.Mesh(new T.PlaneGeometry(24,128,1,40),new T.MeshStandardMaterial({color:0x4b7b7c,metalness:.4,roughness:.2,transparent:true,opacity:.92}));water.rotation.x=-Math.PI/2;water.position.set(243,-.2,68);city.add(water);box(231,0,68,1,.8,128,concrete);box(256,0,68,1,.8,128,concrete);
  building(215,104,18,24,3,0,'WATER TREATMENT / INDUSTRIAL WARD');cyl(216,11,102,1,20,metal);building(-142,180,24,18,2,2,'ELECTRIC TRANSIT DEPOT');sign('NIGHT LOAD / OPERATIONS',-125,4,189,10);
- box(0,.02,4,13,.14,13,pavement);box(-4.5,0,3,1,5,7,concrete,city,true);box(4.5,0,3,1,5,7,concrete,city,true);box(0,4.7,3,10,.5,7,concrete);box(0,0,0,9,4.7,.3,metal);sign('ECO-CORE / RESEARCH ACCESS',0,4.1,7.1,8);
+ // Research campus occupies the block beside the road, never a traffic lane.
+ const site=new T.Group();site.position.set(LAB_X,0,LAB_Z);city.add(site);const firstSiteObstacle=obstacles.length;
+ box(0,.02,4,16,.14,20,pavement,site);box(-4.5,0,3,1,5,7,concrete,site,true);box(4.5,0,3,1,5,7,concrete,site,true);box(0,4.7,4.5,10,.5,12,concrete,site);box(0,0,0,9,4.7,.3,metal,site,true);sign('ECO-CORE / SECURE RESEARCH',0,4.1,7.1,8,site);
+ for(const x of [-8,8]){box(x,0,3,.15,2.2,20,metal,site,true);for(let z=-7;z<=13;z+=2)box(x,0,z,.22,2.7,.22,metal,site);}
+ box(0,0,-7,16,2.2,.15,metal,site,true);
+ for(const x of [-6,6]){box(x,0,13,4,1.2,.25,concrete,site,true);box(x,1.2,13,4,.05,.3,new T.MeshBasicMaterial({color:0x55cbd6}),site);}
+ for(const o of obstacles.slice(firstSiteObstacle)){o.x+=LAB_X;o.z+=LAB_Z;}
+ sign('SECURITY / AUTHORISED FIELD STAFF',0,2.3,13.2,7,site);
  const gates=[];districts.forEach((d,i)=>{if(!i)return;const l=Math.hypot(...d.center),g=new T.Group();g.position.set(d.center[0]/l*43,0,d.center[1]/l*43);g.rotation.y=Math.atan2(d.center[0],d.center[1]);city.add(g);const door=box(0,.4,0,11,2.4,.15,new T.MeshStandardMaterial({color:0x4b5760,metalness:.6,roughness:.35}),g);for(const x of [-6,6]){box(x,0,0,.3,3.6,.4,metal,g);box(x,2.5,0,.36,.8,.45,new T.MeshBasicMaterial({color:0xdd6e46}),g);}gates.push({root:g,door,level:i});});
  const loader=new GLTFLoader(),treePositions=[];for(let i=0;i<28;i++){const x=100+(i%6)*6,z=-99-Math.floor(i/6)*8;treePositions.push([x,z]);obstacles.push({x,z,w:.35,d:.35,h:8});}for(let i=0;i<32;i++)treePositions.push([-70+(i%8)*20,49+Math.floor(i/8)*55]);
  loader.load('/models/island_tree_01.glb',gltf=>{const source=gltf.scene,bb=new T.Box3().setFromObject(source),scale=8/bb.getSize(new T.Vector3()).y;source.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;}});for(const [x,z] of treePositions){const t=source.clone(true);t.position.set(x,-bb.min.y*scale,z);t.rotation.y=x*.2;t.scale.setScalar(scale*(.85+(Math.abs(x+z)%7)/25));city.add(t);decorations.push(t);}},undefined,()=>{});
