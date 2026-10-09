@@ -34,8 +34,7 @@ export function blocked(x,z,y,obstacles,level,location='city',radius=.38){
  if(location==='lab'){x-=LAB_X;z-=LAB_Z;return Math.abs(x)>17-radius||z>10-radius||z<-21+radius||(Math.hypot(x,z+8)<3.4+radius);}
  if(!areaUnlocked(x,z,level)||Math.abs(x)>300||Math.abs(z)>300)return true;
  if(x>231&&z>5&&z<132)return true; // canal bank
- if(y>7)return false; // roof support is checked separately
- return obstacles.some(b=>Math.abs(x-b.x)<b.w+radius&&Math.abs(z-b.z)<b.d+radius);
+ return obstacles.some(b=>y<b.h-.02&&Math.abs(x-b.x)<b.w+radius&&Math.abs(z-b.z)<b.d+radius);
 }
 export function roofHeight(x,z,y){return y>6&&x>=-123&&x<=-101&&z>=-95&&z<=-71?9:0;}
 export function route(start,goal,isBlocked){

@@ -39,3 +39,10 @@ test('Both traffic lanes face their travel direction and never detour around the
   assert.ok((q.z-p.z)*facingZ>0,'Car travelled rear-first');
  }
 });
+
+test('Airborne players can clear low obstacles but cannot pass through tall buildings',()=>{
+ const obstacle=[{x:10,z:10,w:2,d:2,h:12}];
+ assert.equal(blocked(10,10,8,obstacle,0),true);
+ assert.equal(blocked(10,10,12,obstacle,0),false);
+ assert.equal(blocked(10,10,1,[{x:10,z:10,w:2,d:2,h:.5}],0),false);
+});

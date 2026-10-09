@@ -60,3 +60,9 @@ test('Camera sweep catches thin fences and allows views over low walls',()=>{
  assert.equal(cameraFraction({x:0,y:5,z:0},{x:0,y:5,z:8},index),1);
  assert.equal(cameraFraction({x:0,y:1,z:0},{x:0,y:1,z:-8},index),1);
 });
+
+test('Underground camera protects the reactor at negative world elevations',()=>{
+ const index=createObstacleIndex([{x:24,z:16,w:3.4,d:3.4,bottom:-24,h:-17.6}]);
+ const q=cameraFraction({x:24,y:-22,z:22},{x:24,y:-21,z:12},index);
+ assert.ok(q>0&&q<.3);
+});

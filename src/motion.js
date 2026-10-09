@@ -59,7 +59,7 @@ export function cameraFraction(from,to,nearby,clearance=.25){
   for(const b of nearby(x,z)){
    if(seen.has(b))continue;seen.add(b);
    let enter=0,exit=1;
-   for(const [axis,min,max] of [['x',b.x-b.w-clearance,b.x+b.w+clearance],['y',-.3,b.h+clearance],['z',b.z-b.d-clearance,b.z+b.d+clearance]]){
+   for(const [axis,min,max] of [['x',b.x-b.w-clearance,b.x+b.w+clearance],['y',b.bottom??-.3,b.h+clearance],['z',b.z-b.d-clearance,b.z+b.d+clearance]]){
     const delta=to[axis]-from[axis];
     if(Math.abs(delta)<1e-9){if(from[axis]<min||from[axis]>max){enter=2;break;}}
     else{const a=(min-from[axis])/delta,c=(max-from[axis])/delta;enter=Math.max(enter,Math.min(a,c));exit=Math.min(exit,Math.max(a,c));}
