@@ -29,8 +29,20 @@ try{
  await begin.waitFor({timeout:15000});await begin.click();
  await page.waitForFunction(()=>window.mission2050?.snapshot().renderStats?.calls>0,{timeout:30000});
  await page.waitForFunction(()=>window.mission2050?.snapshot().modelLoaded===true,{timeout:35000});
+ await page.keyboard.press('Enter'); // dismiss opening cinematic, enter physical traversal
  await page.waitForTimeout(1200);
+ const before=await page.evaluate(()=>window.mission2050.snapshot());
+ assert.equal(before.screen,'city','Player cannot enter the city');
+ await page.keyboard.down('w');await page.waitForTimeout(1200);await page.keyboard.up('w');
+ const moved=await page.evaluate(()=>window.mission2050.snapshot());
+ assert.ok(moved.position[2]<before.position[2]-1,'W input did not move the character forward');
+ // Sustained render check: catch context loss, memory pressure and late asset exceptions.
+ await page.waitForTimeout(20000);
  const snapshot=await page.evaluate(()=>window.mission2050.snapshot());
+ const fps=await page.locator('#fps').textContent();
+ assert.equal(snapshot.screen,'city','Game exited play during sustained render');
+ assert.ok(snapshot.renderStats.calls>0,'Render loop stalled during soak');
+ console.log('20-second browser soak',JSON.stringify({fps,from:before.position,to:snapshot.position}));
  assert.ok(snapshot.renderStats.calls>0,'No 3D draw calls');
  assert.ok(snapshot.renderStats.triangles>0,'No geometry rendered');
  assert.ok(snapshot.securityGuards===6,'Research security models missing');
@@ -38,6 +50,7 @@ try{
  assert.equal(snapshot.nativeRig,true,'Native character rig is not ready');
  assert.deepEqual(assetErrors,[],'Missing game asset responses');
  assert.deepEqual(pageErrors,[],'Unhandled browser exceptions');
+ await page.screenshot({path:'game-smoke.png'});
  console.log('3D browser smoke passed',JSON.stringify({drawCalls:snapshot.renderStats.calls,triangles:snapshot.renderStats.triangles,models:snapshot.modelLoaded,guards:snapshot.securityGuards,traffic:snapshot.traffic.length}));
 }finally{
  if(browser)await browser.close();
