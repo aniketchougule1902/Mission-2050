@@ -34,3 +34,38 @@ export function sweptMove(x,z,dx,dz,isBlocked,slide=false,maxStep=.28){
  }
  return {x,z,hit};
 }
+
+// Bounded 60 Hz physics prevents refresh-rate-dependent integration and huge
+// catch-up work after a suspended tab. Rendering remains independently paced.
+export function createFixedStepper(step=1/60,maxSteps=6){
+ let remainder=0;
+ return (elapsed,simulate)=>{
+  remainder=Math.min(remainder+Math.max(0,elapsed),step*maxSteps);
+  let steps=0;
+  while(remainder+1e-10>=step&&steps<maxSteps){simulate(step);remainder-=step;steps++;}
+  return steps;
+ };
+}
+export function dampAngle(current,target,dt,rate=14){
+ const difference=Math.atan2(Math.sin(target-current),Math.cos(target-current));
+ return current+difference*(1-Math.exp(-rate*dt));
+}
+// Sweep the camera's near-plane clearance along the complete sight line,
+// including the interpolated camera position, so smoothing cannot enter walls.
+export function cameraFraction(from,to,nearby,clearance=.25){
+ let limit=1;const seen=new Set(),length=Math.hypot(to.x-from.x,to.z-from.z);
+ for(let i=0,n=Math.max(1,Math.ceil(length/.5));i<=n;i++){
+  const q=i/n,x=from.x+(to.x-from.x)*q,z=from.z+(to.z-from.z)*q;
+  for(const b of nearby(x,z)){
+   if(seen.has(b))continue;seen.add(b);
+   let enter=0,exit=1;
+   for(const [axis,min,max] of [['x',b.x-b.w-clearance,b.x+b.w+clearance],['y',-.3,b.h+clearance],['z',b.z-b.d-clearance,b.z+b.d+clearance]]){
+    const delta=to[axis]-from[axis];
+    if(Math.abs(delta)<1e-9){if(from[axis]<min||from[axis]>max){enter=2;break;}}
+    else{const a=(min-from[axis])/delta,c=(max-from[axis])/delta;enter=Math.max(enter,Math.min(a,c));exit=Math.min(exit,Math.max(a,c));}
+   }
+   if(enter<=exit&&exit>=0)limit=Math.min(limit,Math.max(0,enter-.02));
+  }
+ }
+ return limit;
+}

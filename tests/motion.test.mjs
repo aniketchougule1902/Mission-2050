@@ -42,3 +42,21 @@ test('Unobstructed forward and reverse have symmetric displacement',()=>{
  assert.ok(Math.abs(forward.x+1)<1e-9&&Math.abs(forward.z+2)<1e-9);
  assert.ok(Math.abs(reverse.x-7)<1e-9&&Math.abs(reverse.z+16)<1e-9);
 });
+
+import {createFixedStepper,dampAngle,cameraFraction} from '../src/motion.js';
+test('Fixed physics produces identical gravity across 30/60/144 Hz',()=>{
+ const simulate=hz=>{let y=0,v=6;const advance=createFixedStepper();for(let i=0;i<hz;i++)advance(1/hz,dt=>{v-=16*dt;y+=v*dt;});return {y,v};};
+ assert.deepEqual(simulate(30),simulate(60));assert.deepEqual(simulate(144),simulate(60));
+ let count=0;createFixedStepper()(30,()=>count++);assert.equal(count,6,'suspended tabs must not cause unbounded catch-up');
+});
+test('Turning follows shortest arc across the pi boundary',()=>{
+ const result=dampAngle(Math.PI-.01,-Math.PI+.01,1/60);
+ assert.ok(result>Math.PI-.01&&result<Math.PI+.01);
+});
+test('Camera sweep catches thin fences and allows views over low walls',()=>{
+ const index=createObstacleIndex([{x:0,z:2,w:4,d:.03,h:3}]);
+ const q=cameraFraction({x:0,y:1.4,z:0},{x:0,y:2,z:8},index);
+ assert.ok(q>0&&q<.25);
+ assert.equal(cameraFraction({x:0,y:5,z:0},{x:0,y:5,z:8},index),1);
+ assert.equal(cameraFraction({x:0,y:1,z:0},{x:0,y:1,z:-8},index),1);
+});
