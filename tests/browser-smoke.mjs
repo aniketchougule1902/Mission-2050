@@ -5,7 +5,7 @@ import {spawn} from 'node:child_process';
 import {setTimeout as delay} from 'node:timers/promises';
 import {chromium} from 'playwright';
 
-const server=spawn(process.execPath,['dev.mjs'],{stdio:['ignore','pipe','pipe']});
+const server=spawn(process.execPath,['dev.mjs','--production'],{stdio:['ignore','pipe','pipe']});
 let browser;let serverError='';
 server.stderr.on('data',chunk=>serverError+=chunk.toString());
 async function ready(){
@@ -20,7 +20,8 @@ try{
  await ready();
  browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--no-sandbox']});
  const page=await browser.newPage({viewport:{width:1280,height:720},deviceScaleFactor:1});
- const pageErrors=[],assetErrors=[];
+ const pageErrors=[],assetErrors=[],decodeErrors=[];
+ page.on('console',message=>{if(/Content Security Policy|Couldn.t load texture|Failed to fetch/.test(message.text()))decodeErrors.push(message.text());});
  page.on('pageerror',error=>pageErrors.push(error.message));
  page.on('response',response=>{if(response.status()>=400&&/\/(?:models|textures|vendor)\//.test(response.url()))assetErrors.push(response.status()+' '+response.url());});
  await page.goto('http://127.0.0.1:4185/',{waitUntil:'domcontentloaded',timeout:30000});
@@ -60,6 +61,7 @@ try{
  assert.ok(snapshot.traffic.length===8,'Traffic did not spawn');
  assert.equal(snapshot.nativeRig,true,'Native character rig is not ready');
  assert.deepEqual(assetErrors,[],'Missing game asset responses');
+ assert.deepEqual(decodeErrors,[],'Texture decoding or production CSP errors');
  assert.deepEqual(pageErrors,[],'Unhandled browser exceptions');
  await page.screenshot({path:'game-smoke.png'});
  console.log('3D browser smoke passed',JSON.stringify({drawCalls:snapshot.renderStats.calls,triangles:snapshot.renderStats.triangles,models:snapshot.modelLoaded,guards:snapshot.securityGuards,traffic:snapshot.traffic.length}));

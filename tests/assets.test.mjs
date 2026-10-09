@@ -13,3 +13,10 @@ test('All locally packaged module imports resolve',()=>{
   }
  }
 });
+
+test('Production policy permits embedded GLB image decoding without remote scripts',()=>{
+ const config=JSON.parse(readFileSync('vercel.json','utf8'));
+ const policy=config.headers[0].headers.find(h=>h.key==='Content-Security-Policy').value;
+ for(const directive of ['img-src','connect-src'])assert.ok(policy.split(';').find(p=>p.trim().startsWith(directive)).includes('blob:'));
+ assert.ok(policy.includes("script-src 'self';"));
+});
