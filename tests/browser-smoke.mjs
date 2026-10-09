@@ -52,6 +52,42 @@ try{
  assert.deepEqual(pageErrors,[],'Unhandled browser exceptions');
  await page.screenshot({path:'game-smoke.png'});
  console.log('3D browser smoke passed',JSON.stringify({drawCalls:snapshot.renderStats.calls,triangles:snapshot.renderStats.triangles,models:snapshot.modelLoaded,guards:snapshot.securityGuards,traffic:snapshot.traffic.length}));
+ // Separate no-GPU accessibility playthrough: all five stones, server verdict
+ // and restart must complete through actual menu controls.
+ const accessible=await browser.newPage({viewport:{width:1100,height:800}});
+ const assetRequests=[];
+ accessible.on('request',req=>{if(/\\/models\\//.test(req.url()))assetRequests.push(req.url());});
+ await accessible.addInitScript(()=>localStorage.setItem('m2050.v3.settings',JSON.stringify({text:true,quality:'low',locale:'en',volume:0})));
+ await accessible.goto('http://127.0.0.1:4185/',{waitUntil:'domcontentloaded'});
+ await accessible.locator('[data-action="begin"]').click();
+ const missions=[
+  ['fuse','power','circuit','clinic','gem'],
+  ['panels','panel1','panel2','panel3','gem'],
+  ['stakes','housing1','housing2','grove','water1','water2','gem'],
+  ['scan1','scan2','scan3','valve','gem'],
+  ['cargo','depotDelivery','clinicDelivery','budget:buses','budget:cycling','budget:backup','budget:training','night','gem']
+ ];
+ for(const steps of missions){
+  for(const id of steps){
+   const choice=accessible.locator('[data-action="accessible:'+id+'"]');
+   await choice.waitFor({state:'visible',timeout:10000});await choice.click();
+  }
+  for(const id of ['lift','assemble','lift']){
+   const choice=accessible.locator('[data-action="accessible:'+id+'"]');
+   await choice.waitFor({state:'visible',timeout:10000});await choice.click();
+  }
+ }
+ await accessible.locator('[data-action="accessible:lift"]').click();
+ await accessible.locator('[data-action="accessible:activate"]').click();
+ await accessible.waitForFunction(()=>window.mission2050?.snapshot().screen==='ending',{timeout:15000});
+ const ending=await accessible.evaluate(()=>window.mission2050.snapshot());
+ assert.deepEqual(ending.adventure.assembled,[0,1,2,3,4]);
+ assert.equal(ending.adventure.ending.ending,'green');
+ assert.deepEqual(assetRequests,[],'Accessible mode should not initialize or fetch GPU models');
+ await accessible.locator('[data-action="restart"]').click();
+ assert.equal((await accessible.evaluate(()=>window.mission2050.snapshot())).screen,'home');
+ console.log('Accessible 5-level journey + restart passed without WebGL');
+
 }finally{
  if(browser)await browser.close();
  server.kill('SIGTERM');
