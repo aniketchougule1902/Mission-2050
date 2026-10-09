@@ -33,10 +33,20 @@ try{
  await page.waitForTimeout(1200);
  const before=await page.evaluate(()=>window.mission2050.snapshot());
  assert.equal(before.screen,'city','Player cannot enter the city');
- await page.keyboard.down('s');await page.waitForTimeout(1200);await page.keyboard.up('s');
+ await page.keyboard.down('s');
+ let movementWaitError='';
+ try{
+  // Software-rendered WebGL may stall the main thread; require movement, not
+  // simply 1200ms of wall time which can pass without a simulation frame.
+  await page.waitForFunction(start=>{
+   const position=window.mission2050?.snapshot()?.position;
+   return position&&Math.hypot(position[0]-start[0],position[2]-start[2])>.05;
+  },before.position,{timeout:8000,polling:150});
+ }catch(e){movementWaitError=e.message;}
+ finally{await page.keyboard.up('s');}
  const moved=await page.evaluate(()=>window.mission2050.snapshot());
  assert.ok(Math.hypot(moved.position[0]-before.position[0],moved.position[2]-before.position[2])>.05,
-  'Movement failed near research compound: '+JSON.stringify({before:before.position,after:moved.position,screen:moved.screen}));
+  'Movement failed near research compound: '+JSON.stringify({before:before.position,after:moved.position,screen:moved.screen,pageErrors,movementWaitError}));
  // Sustained render check: catch context loss, memory pressure and late asset exceptions.
  await page.waitForTimeout(20000);
  const snapshot=await page.evaluate(()=>window.mission2050.snapshot());
