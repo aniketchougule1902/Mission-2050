@@ -28,3 +28,11 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Validate WebGL scene, vehicle traffic and asset loading
         run: node tests/browser-smoke.mjs
+      - name: Upload rendered game screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mission2050-browser-smoke
+          path: game-smoke.png
+          retention-days: 7
+          if-no-files-found: ignore
