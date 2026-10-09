@@ -39,14 +39,31 @@ export function blocked(x,z,y,obstacles,level,location='city',radius=.38){
 }
 export function roofHeight(x,z,y){return y>6&&x>=-123&&x<=-101&&z>=-95&&z<=-71?9:0;}
 export function route(start,goal,isBlocked){
- // A* on a four-metre grid; points are real traversable positions, no teleport.
- const step=4,key=(x,z)=>x+','+z,sx=Math.round(start[0]/step),sz=Math.round(start[1]/step),gx=Math.round(goal[0]/step),gz=Math.round(goal[1]/step);
- const open=[{x:sx,z:sz,g:0,f:0}],seen=new Map([[key(sx,sz),0]]),parents=new Map();let end;
- for(let n=0;open.length&&n<12000;n++){
-  open.sort((a,b)=>b.f-a.f);const p=open.pop();if(Math.hypot(p.x-gx,p.z-gz)<1.6){end=p;break;}
-  for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){const x=p.x+dx,z=p.z+dz,k=key(x,z),g=p.g+1;if(seen.has(k)&&seen.get(k)<=g)continue;if(isBlocked(x*step,z*step))continue;seen.set(k,g);parents.set(k,p);open.push({x,z,g,f:g+Math.abs(x-gx)+Math.abs(z-gz)});}
+ // Budgeted A* with a binary min-heap: no full-array sort on every expansion.
+ // A route request can never monopolise the render thread in an inaccessible district.
+ const step=4, sx=Math.round(start[0]/step),sz=Math.round(start[1]/step);
+ const gx=Math.round(goal[0]/step),gz=Math.round(goal[1]/step);
+ const key=(x,z)=>x+','+z,heur=(x,z)=>Math.abs(x-gx)+Math.abs(z-gz);
+ const heap=[],score=new Map([[key(sx,sz),0]]),parent=new Map(),closed=new Set();
+ function push(p){let i=heap.length;heap.push(p);while(i){const j=(i-1)>>1;if(heap[j].f<=p.f)break;heap[i]=heap[j];i=j;}heap[i]=p;}
+ function pop(){const top=heap[0],end=heap.pop();if(heap.length){let i=0;while(i*2+1<heap.length){let j=i*2+1;if(j+1<heap.length&&heap[j+1].f<heap[j].f)j++;if(end.f<=heap[j].f)break;heap[i]=heap[j];i=j;}heap[i]=end;}return top;}
+ push({x:sx,z:sz,g:0,f:heur(sx,sz)});
+ let reached=null;
+ for(let expanded=0;heap.length&&expanded<3500;){
+  const p=pop(),id=key(p.x,p.z);
+  if(closed.has(id)||p.g!==score.get(id))continue;
+  closed.add(id);expanded++;
+  if(Math.abs(p.x-gx)+Math.abs(p.z-gz)<=1){reached=p;break;}
+  for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){
+   const x=p.x+dx,z=p.z+dz,nid=key(x,z),g=p.g+1;
+   if(closed.has(nid)||g>= (score.get(nid)??Infinity)||isBlocked(x*step,z*step))continue;
+   score.set(nid,g);parent.set(nid,id);push({x,z,g,f:g+heur(x,z)});
+  }
  }
- if(!end)return [start,goal];const points=[goal];while(end&&(end.x!==sx||end.z!==sz)){points.push([end.x*step,end.z*step]);end=parents.get(key(end.x,end.z));}points.push(start);return points.reverse();
+ if(!reached)return [start,goal];
+ const points=[goal];let id=key(reached.x,reached.z);
+ while(id!==key(sx,sz)){const [x,z]=id.split(',').map(Number);points.push([x*step,z*step]);id=parent.get(id);if(!id)return [start,goal];}
+ points.push(start);return points.reverse();
 }
 
 export function onRoad(x,z){return roads.some(r=>Math.abs(x-r)<7||Math.abs(z-r)<7)||districts.some(d=>segmentDistance(x,z,0,0,...d.center)<5);}
