@@ -56,7 +56,7 @@ try{
  // and restart must complete through actual menu controls.
  const accessible=await browser.newPage({viewport:{width:1100,height:800}});
  const assetRequests=[];
- accessible.on('request',req=>{if(/\\/models\\//.test(req.url()))assetRequests.push(req.url());});
+ accessible.on('request',req=>{if(req.url().includes('/models/'))assetRequests.push(req.url());});
  await accessible.addInitScript(()=>localStorage.setItem('m2050.v3.settings',JSON.stringify({text:true,quality:'low',locale:'en',volume:0})));
  await accessible.goto('http://127.0.0.1:4185/',{waitUntil:'domcontentloaded'});
  await accessible.locator('[data-action="begin"]').click();
