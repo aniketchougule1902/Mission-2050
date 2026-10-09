@@ -11,4 +11,4 @@ createServer(async(req,res)=>{
  const file=resolve(root,'.'+(path==='/'?'/index.html':path));
  if(!file.startsWith(root+String.fromCharCode(92))&&!file.startsWith(root+'/')){res.writeHead(403);res.end();return;}
  try{const content=await readFile(file);res.writeHead(200,{'Content-Type':types[extname(file)]||'application/octet-stream'});res.end(content);}catch{res.writeHead(404);res.end('Not found');}
-}).listen(4173,'127.0.0.1',()=>console.log('Local: http://127.0.0.1:4173'));
+}).listen(4185,'127.0.0.1',()=>console.log('Local: http://127.0.0.1:4185'));

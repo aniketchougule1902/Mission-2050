@@ -6,7 +6,7 @@ export const choices={
  river:[{id:'effluent',delta:[0,0,22],points:20},{id:'plastic',delta:[0,0,5],points:5},{id:'runoff',delta:[0,0,8],points:5}]
 };
 export const costs={buses:50,cycling:20,backup:15,training:15,roads:35,petrol:30};
-export function fresh(players=1){return {version:VERSION,stage:0,decisions:[],budget:[],carbon:82,energy:18,ecosystem:15,reserve:4,workers:0,access:0,scores:Array(players).fill(100),evidence:[],position:[0,9]};}
+export function fresh(players=1){return {version:VERSION,stage:0,decisions:[],budget:[],carbon:82,energy:18,ecosystem:15,reserve:4,workers:0,access:0,scores:Array(players).fill(100),evidence:[],position:[0,15]};}
 const clamp=n=>Math.max(0,Math.min(100,n));
 export function decide(s,stage,id){
  const c=choices[stage]?.find(c=>c.id===id);if(!c)throw Error('Invalid choice');
