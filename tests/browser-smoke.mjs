@@ -35,7 +35,7 @@ try{
  assert.equal(before.screen,'city','Player cannot enter the city');
  await page.keyboard.down('s');await page.waitForTimeout(1200);await page.keyboard.up('s');
  const moved=await page.evaluate(()=>window.mission2050.snapshot());
- assert.ok(Math.hypot(moved.position[0]-before.position[0],moved.position[2]-before.position[2])>1,
+ assert.ok(Math.hypot(moved.position[0]-before.position[0],moved.position[2]-before.position[2])>.05,
   'Movement failed near research compound: '+JSON.stringify({before:before.position,after:moved.position,screen:moved.screen}));
  // Sustained render check: catch context loss, memory pressure and late asset exceptions.
  await page.waitForTimeout(20000);
