@@ -1,24 +1,21 @@
-# Validation record
+# Adventure V2 validation — 9 October 2026
 
-Checked locally on 9 October 2026.
+## Automated checks
 
-## Passed
+20 Node tests pass: complete physical action graph to green ending; mandatory carry/assemble gate; task prerequisites; three-panel placement; three river clues; budget overspend; failed night test and repair; explicit critical override; carried/assembled save reconstruction; solar descent ladder; local module dependency existence; original ending, worker, river, budget, server replay and deterministic legal-plan tests. Syntax checks pass for app/controller; production build succeeds. All assets are packaged locally.
 
-- Ten automated Node tests, including exhaustive valid-choice/budget combinations, independent service gates, save reconstruction, shared-device scoring, input rejection and server-side recomputation.
-- Production asset build and JavaScript syntax checks.
-- Browser playthrough of all four early missions, evidence gating, budget allocation, failed clinic test, amendment and server-checked Green Future ending.
-- Browser Critical Failure and Survival endings also reached through real menu actions.
-- Save restored after page reload with four decisions and final budget intact.
-- Music toggle changes to ON, with no captured browser error logs. Actual listening and subjective audio mix still need a human review.
-- English/Hindi ending rendering, expanded pseudolocale, partial Arabic RTL interface, and accessible text mode.
-- Desktop 1440×900 and phone-size 390×844 layouts inspected; no desktop horizontal overflow. Phone panels scroll to all decisions and actions.
-- Simple meshes batched by material using InstancedMesh. Local FPS display ranged widely during browser inspection, approximately 26–144 FPS after initial compilation; startup readings were lower before batching/warm-up. This is not a sustained benchmark or a guarantee of 60 FPS.
-- Low/High profiles and semantic DOM snapshots are available. Header and menus remain keyboard-accessible; normal movement logic uses keydown/up and touch pointer capture.
+## Browser evidence
 
-## Not yet verified
+Ran the local game in Codex's browser. Character GLBs and HDR loaded; semantic modelLoaded=true. Verified walking to the fuse and collecting it by real proximity interaction, genuine touch walking, utility-vehicle entry/acceleration/exit, camera/input controls, first and fifth real assembly animations, manual activation and a Server-checked green result with reserve14/carbon18/supply62/ecosystem65. The full five-mission UI prerequisite path was exercised through the labelled accessibility fallback, then returned to the real world for carrying/assembly/final activation. This does not substitute for traversing every mission physically.
 
-Physical iOS/Android devices, thermal/memory measurements, real touch-hardware feel, sustained frame pacing, newcomer comprehension, human Hindi proofreading, audible music quality, authenticated Vercel deployment, public-host smoke tests and organizer submission eligibility. Arabic is a partial UI preview, not a finished translation. Multiplayer is shared-device turn-taking only.
+Observed and fixed: mismatched animation export axes; upper-arm staging; touch pointer-capture cancellation; missing loader dependency; carried solar stone losing descent ladder; stale world position on restart; saved ending reopening without an ending panel; traffic route crossing the reactor; expanded settings overflowing a phone panel. Console error/warning list empty after final activation.
 
-## Release smoke test
+Inspected1440×900 desktop and390×844 phone-sized browser frames. English, expanded text and settings inspected; Hindi main objectives/actions and Arabic RTL remain partial with English fallback, requiring translation QA. Screenshots show actual runtime frames, including violet assembly. Reduced-motion duration, Low profile and semantic menus are implemented. No FPS target is claimed: live counter varied with model/HDR startup and warmed rendering; this is not a sustained hardware benchmark.
 
-Run tests/build, deploy preview on Vercel, open on desktop and a physical phone, enable music, complete all missions, verify missing-backup failure, add backup, activate good ending, reload save, check text mode and Hindi, then promote. Retain the previous deployment for rollback. No database migration applies.
+## Release checks still open
+
+Newcomer playtests, complete physical traversal of all branches, physical iOS/Android touch/heat/memory/frame-pacing/lifecycle checks, full Hindi/Arabic translation review, sustained low-end performance measurement and deployed Vercel preview smoke checks. No real-player telemetry or external playtest evidence was supplied. No blind AAA comparisons performed; this remains a stylised browser prototype with representative characters, not GTA/Marvel production quality.
+
+## Reproduce
+
+Run npm test, npm run build, npm run dev. Walk to the fuse and holdE. Run each task in GAME_DESIGN.md, deliver each stone, check sockets remain lit and the next district unlocks only after assembly. Test buses/cycling/training without backup (reserve−2), then add backup to100 and retest (reserve14). Complete final activation and confirm Server-checked result. Refresh saves, pause/resume, enter/exit the car, use the roof ladder while carrying, switch camera/quality/locale, test phone controls and blocked local storage/API. Before publication repeat on a Vercel preview; retain its previous deployment for rollback.

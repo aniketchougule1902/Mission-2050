@@ -28,3 +28,5 @@ const hi={
 };
 const ar={'hero.start':'ابدأ المهمة ←','hero.how':'دليل اللعب','ui.close':'إغلاق','ui.next':'متابعة ←','ui.pause':'إيقاف مؤقت','ui.resume':'استئناف','ui.carbon':'الكربون','ui.energy':'طاقة نظيفة','ui.eco':'النظام البيئي','settings.title':'الإعدادات'};
 let locale='en';export function setLocale(v){locale=['en','hi','pseudo','ar'].includes(v)?v:'en';document.documentElement.lang=locale==='pseudo'?'en':locale;document.documentElement.dir=locale==='ar'?'rtl':'ltr';}export function t(k){const value=(locale==='hi'?hi[k]:locale==='ar'?ar[k]:null)||en[k]||k;return locale==='pseudo'?'⟦ '+value.replace(/[aeiou]/g,c=>c+c)+' ⟧':value;}export function currentLocale(){return locale;}export const keys=Object.keys(en);
+
+export function addTranslations(enValues,hiValues={}){Object.assign(en,enValues);Object.assign(hi,hiValues);}
