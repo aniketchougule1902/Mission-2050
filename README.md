@@ -1,25 +1,27 @@
-# Mission 2050 — Aakhri Saans / Adventure V2
+# Mission 2050 - Adventure V3
 
-A complete browser adventure loop in Suryanagar: animated human characters, third-person exploration, rooftop tasks, river investigation, a drivable electric utility vehicle, five carried energy stones, manual reactor assembly, original synthesised music and three consequence-based endings.
+Play Asha's five-level climate adventure across Suryanagar. Recover a stone in each district, return to the research entrance, descend 24 metres by animated elevator, and hand the stone to Dr. Meera. She carries it around the reactor, fits it into its magnetic socket, and activates the next district.
 
-## Play
+## Play on this computer
 
-Double-click **Start Game.cmd**, leave its window open, then visit http://127.0.0.1:4185 in Chrome or Edge. Alternatively, with Node.js 20+ installed, run `npm run dev`. No dependency installation is required. Click Enter City; music starts with that gesture. Use headphones for the five distinct assembly motifs.
+Double-click **Start Game.cmd**, leave the window open, and visit http://127.0.0.1:4185 in Chrome or Edge. With Node 20+ installed, `npm run dev` does the same. No dependency installation is required. Enter City starts music; headphones make the different stone motifs clearer.
 
-WASD / arrows: move; Shift: sprint; mouse drag: orbit view; mouse wheel: camera distance; C: chase / wide / first-person; Space: jump or vehicle brake; hold E near a glowing task: work; Q: scanner and hold for scan tasks; F near the amber vehicle: enter / exit; M: map; Esc: pause. Touch has direction, action, camera, scan, vehicle and jump buttons. The compass points to the nearest available task; the map shows all available tasks.
+WASD/arrows move; Shift runs; Space jumps or brakes; drag rotates the camera; mouse wheel changes distance; C cycles chase/wide/first-person; hold E near a task to work; Q scans; F enters/exits the utility vehicle; M opens the map; Esc pauses. Touch direction taps move briefly; hold for continuous movement. Touch E starts the current nearby action. Release between actions.
 
-Collect a stone after each mission, physically return to the lab, and hold E at the console. The next district unlocks only after assembly. Five assemblies unlock final activation. Shade cools heat stress; exhaustion returns Asha to the lab without discarding task progress. Traffic can cause a heat penalty. Progress saves in this browser. New Adventure resets it.
+Follow the gold breadcrumbs and direction arrow. The checklist explains each milestone; the centre prompt explains the nearby task. A collected stone must be installed underground before the next district opens. The elevator can be used in both directions. In the lab, leave the cabin and walk forward to Meera. Five installed stones allow final activation. Progress saves locally; New Adventure resets it. Shade and the lab reduce heat. Exhaustion returns you to the research entrance and preserves task progress.
 
-Settings offers High/Low quality, volume, and a clearly labelled movement-free accessibility fallback. Main play uses spatial tasks rather than question-and-answer popups. English is complete; Hindi covers the main objectives/actions but some radio/settings copy falls back to English. Arabic is a partial RTL UI preview; Expanded Text is a testing locale.
+Settings offers High/Low detail distance, volume, and a labelled movement-free accessibility fallback. English is complete. Hindi is partial with English fallback; Arabic is a partial RTL preview; Expanded Text tests long labels.
 
-## Build and Vercel
+## Vercel
 
-Run `npm test` and `npm run build`. Push this complete folder to GitHub and import into Vercel. Choose **Other**, Build Command **npm run build**, Output **dist**, Node **20+**. Keep `vercel.json`, `api`, `src`, `public/vendor` and `public/models`. No environment variables or database are needed. The final verdict is recomputed by `/api/verdict`; offline/API failure uses a labelled local verdict. Deploy a preview and smoke-test before production. This project has not been published to your account.
+Run `npm test` and `npm run build`. Import this folder's repository into Vercel. Framework: **Other**. Build: **npm run build**. Output: **dist**. Node: **20+**. Keep `vercel.json`, `api`, `public` and `src`. No environment variables/database are required. The final verdict is recomputed by `/api/verdict`; API failure uses a labelled local verdict. No runtime CDN or remotely loaded game assets.
 
-The included launcher can use the bundled Node runtime on this computer; other computers need Node 20+. Do not open index.html directly: ES modules and the API need a server.
+Preview-test before promoting a deployment. This project has not been published to your Vercel account. Other computers need Node 20+ for the local launcher. Opening index.html directly does not work.
 
-## Scope and credits
+## V3 presentation
 
-This is a browser adventure prototype with a full playable path. The city and vehicles remain procedural/stylised; characters use representative Mixamo models. It is not GTA/Marvel/AAA production artwork, combat, a huge open world, or licensed superhero content. No online multiplayer, accounts or purchases. Physical phone performance and real-player playtests remain release checks; displayed FPS is live, not a guarantee.
+The 600-metre city has detailed procedural buildings with balconies, recessed windows, storefronts and rooftop equipment, photographed PBR surfaces, scanned trees/lamps/barriers, roads and moving traffic. The character uses one compatible native skeleton and its own animations. City directional/contact shadows are authored geometry to avoid an expensive real-time shadow pass. The underground reactor has layered metalwork, coolant pipes, glass containment, moving rings and five persistent stone sockets. A GLB export is included in public/models/ECO_CORE.glb.
 
-See GAME_DESIGN.md, ARCHITECTURE.md, VALIDATION.md and CREDITS.md. Story adapted from your supplied Mission 2050 documents. All environmental/budget figures are fictional teaching units. “Saans koi score nahi.”
+This is a playable browser prototype with representative character assets and procedural buildings/vehicles. Bespoke realistic Asha/Meera, cinematic facial acting, GTA-level authored city art, and production device/playtest verification remain further production work. Live FPS depends on hardware. There are no accounts, multiplayer or purchases.
+
+See GAME_DESIGN.md, ARCHITECTURE.md, VALIDATION.md and CREDITS.md. Environmental and budget figures are fictional teaching units. Saans koi score nahi.

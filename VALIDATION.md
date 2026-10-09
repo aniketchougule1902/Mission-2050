@@ -1,21 +1,23 @@
-# Adventure V2 validation — 9 October 2026
+# Adventure V3 validation - 9 October 2026
 
-## Automated checks
+## Automated results
 
-20 Node tests pass: complete physical action graph to green ending; mandatory carry/assemble gate; task prerequisites; three-panel placement; three river clues; budget overspend; failed night test and repair; explicit critical override; carried/assembled save reconstruction; solar descent ladder; local module dependency existence; original ending, worker, river, budget, server replay and deterministic legal-plan tests. Syntax checks pass for app/controller; production build succeeds. All assets are packaged locally.
+26 Node tests pass. These cover all five mission prerequisites and the strongest ending, mandatory underground installation, rooftop descent while carrying, three-panel placement, three river clues, budget and failed night-test repair/override, save reconstruction, dependency resolution, sequential district unlocks and traversable corridors, containment collision, rooftop elevation, A* building detours, alternate-choice checklist feedback, deterministic ending gates, worker/river requirements and server replay. Syntax checks for engine/app pass; clean production build succeeds.
 
-## Browser evidence
+Live local POST /api/verdict smoke test returns green with reserve14, carbon18, supply62 and ecosystem65. Server independently replays choices. No deployment was made.
 
-Ran the local game in Codex's browser. Character GLBs and HDR loaded; semantic modelLoaded=true. Verified walking to the fuse and collecting it by real proximity interaction, genuine touch walking, utility-vehicle entry/acceleration/exit, camera/input controls, first and fifth real assembly animations, manual activation and a Server-checked green result with reserve14/carbon18/supply62/ecosystem65. The full five-mission UI prerequisite path was exercised through the labelled accessibility fallback, then returned to the real world for carrying/assembly/final activation. This does not substitute for traversing every mission physically.
+## V3 browser evidence
 
-Observed and fixed: mismatched animation export axes; upper-arm staging; touch pointer-capture cancellation; missing loader dependency; carried solar stone losing descent ladder; stale world position on restart; saved ending reopening without an ending panel; traffic route crossing the reactor; expanded settings overflowing a phone panel. Console error/warning list empty after final activation.
+Actual runtime shows modelLoaded/nativeRig true. Inspected corrected native character walk/idle alignment, photographed city materials, detailed facades and scanned street props. Used real touch movement into the research elevator; observed closing, actual 24m travel, arrival and lab doors. Actual first and final stone researcher sequences emitted handover, researcherCarry, socketFit, activation and complete; installed stones persist and the next district opens. The outside-arc doctor path avoids reactor containment. These are rendered gameplay sequences, not pre-rendered videos.
 
-Inspected1440×900 desktop and390×844 phone-sized browser frames. English, expanded text and settings inspected; Hindi main objectives/actions and Arabic RTL remain partial with English fallback, requiring translation QA. Screenshots show actual runtime frames, including violet assembly. Reduced-motion duration, Low profile and semantic menus are implemented. No FPS target is claimed: live counter varied with model/HDR startup and warmed rendering; this is not a sustained hardware benchmark.
+The full five-level prerequisite UI path was exercised through the labelled movement-free fallback. Missing backup produced critical reserve-2; adding backup and retesting yielded green reserve14. First and fifth handovers were also exercised in spatial play. This does not prove every district was physically traversed or all collision branches were played end to end.
 
-## Release checks still open
+Desktop1280x720, touch714x612 and phone390x844 layouts inspected. Phone English and Expanded Text had document width390 with no horizontal overflow; Low profile was exercised and defaults restored. Task instructions and checklist use stable keys. English is complete; Hindi/Arabic remain partial previews. Final observed console warning/error list was empty.
 
-Newcomer playtests, complete physical traversal of all branches, physical iOS/Android touch/heat/memory/frame-pacing/lifecycle checks, full Hindi/Arabic translation review, sustained low-end performance measurement and deployed Vercel preview smoke checks. No real-player telemetry or external playtest evidence was supplied. No blind AAA comparisons performed; this remains a stylised browser prototype with representative characters, not GTA/Marvel production quality.
+City preview warmed around60-90FPS; lab preview reached120-145FPS at the tested sizes. These are live counter observations in the instrumented browser, not sustained hardware benchmarks. Initial asset/shader warmup and repeated viewport/reload operations sometimes caused long stalls; startup/frame pacing still needs measurement in target Chrome/Edge and physical phones. City real-time sun shadows were removed after a severe stall; authored projected shadows and a moving contact patch retain grounding.
 
-## Reproduce
+## Reproduce and release gates
 
-Run npm test, npm run build, npm run dev. Walk to the fuse and holdE. Run each task in GAME_DESIGN.md, deliver each stone, check sockets remain lit and the next district unlocks only after assembly. Test buses/cycling/training without backup (reserve−2), then add backup to100 and retest (reserve14). Complete final activation and confirm Server-checked result. Refresh saves, pause/resume, enter/exit the car, use the roof ladder while carrying, switch camera/quality/locale, test phone controls and blocked local storage/API. Before publication repeat on a Vercel preview; retain its previous deployment for rollback.
+Run npm test, npm run build and npm run dev. Walk each district's task route, collect its stone, descend to the lab, hand over, verify socket permanence and that exactly the next district opens. Use the ladder both directions while carrying. Test driving/deliveries, both pollution choices, shaded panels, heat recovery, save/refresh, pause, Low/High profiles, long labels and touch. Test missing backup and repaired reserve, then final API activation.
+
+Complete physical traversal of all routes/branches, newcomer playtests, physical iOS/Android touch/thermals/memory/lifecycle/frame-pacing measurements, full translation review, startup/loading polish, bespoke character/city art and deployed Vercel preview smoke checks remain production gates. No external playtest telemetry was supplied. No blind AAA comparison or GTA-equivalent art claim is made.

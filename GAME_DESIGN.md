@@ -1,39 +1,37 @@
-# Mission 2050 — Adventure V2 design
+# Mission 2050 - Adventure V3 design
 
-## Fantasy, goal, pressure, twist
+## Player fantasy and loop
 
-Play Asha, a field engineer working with Kabir and Meera to restore Suryanagar's lifelines and protect Dadi's clinic. Walk, repair, survey, investigate, drive deliveries, and carry five earned energy stones to ECO-CORE. The story moves through a fictional 30-day deadline; heat and traffic add immediate field pressure. The defining twist remains: a visually greener city can still leave the clinic without night power. A score never replaces essential-service safety.
+Play Asha, a field engineer restoring Suryanagar with Kabir and Dr. Meera while protecting Dadi's clinic. Explore on foot or drive, inspect evidence, repair equipment, earn a district's stone, carry it to the research entrance, descend into the lab, hand it over and unlock the next level. Immediate heat pressure sits inside a fictional 30-day story. The defining twist: a lower-carbon city can still fail its clinic at night. Essential-service safety takes precedence over a score.
 
-Core loop: navigate to a world task → perform a timed physical action → observe a changed prop/resource or radio response → earn and carry the district stone → walk/drive back to the lab → manually assemble it with a cinematic → unlock the next district. No instant mission-menu teleports. The accessible fallback exposes the same prerequisite graph without navigation.
+## World and progression
 
-## Complete mission path
+A 600 x 600 metre city footprint contains five district regions connected to the central research entrance by service corridors. The initial clinic ward is open; unreached districts are physically blocked and fogged on the map. Installing stone N opens district N+1 and its corridor. Earlier districts remain available. The utility car becomes available after the first installation. This is a large traversal space for this browser slice, not a fully inhabited GTA-scale simulation.
 
-1. **The fan must turn / amber:** retrieve a spare fuse, disable wasted billboard demand (or choose coal backup), repair the junction, confirm the clinic fan with Leela, collect the power stone. Carry it to the lab. Early tasks teach navigation and hold-to-work.
-2. **Chase the sun / azure:** approach the school ladder, climb onto the roof, collect three panels, install them at three chosen physical positions. A shaded position reduces the solar result. Collect the sun stone, descend using the ladder (also available while carrying), and return.
-3. **This shade has a name / emerald:** collect survey stakes, mark two housing plots on developed land, protect mature canopy or approve clearance, plant and water two native saplings. Housing access and mature shade both matter. Carry the life stone home.
-4. **The river has evidence / cyan:** scan upstream, scan the outfall, inspect Arun's authorised records. All three distinct clues are required. Close the verified discharge valve or only clear visible litter. Collect and deliver the water stone. Water colour changes communicate the chosen treatment, not instant real-world recovery.
-5. **Who gets the last watt / violet:** load reserve batteries, drive the amber municipal utility vehicle to depot then clinic, operate six physical budget stations, and run the night-load test. Failed reserve requires budget repair or an explicit red override. Collect the mobility stone, return, assemble it, then activate the five-stone reactor.
+The surface research pavilion conceals a laboratory 24 metres below ground. The six-and-a-half-second lift sequence closes front/back doors, moves the actual cabin and camera through illuminated shaft sections, then opens into the lab. Handover lasts twelve seconds: player to researcher, researcher walks outside containment to the matching socket, stone moves into magnetic clamps, coloured plasma/particles/shockwave activate. Previously installed sockets remain lit. Final activation uses a separate beam sequence.
 
-Good route: efficiency → three sunny panels → infill/protection → verified effluent → buses50 + cycling20 + clinic backup15 + worker training15. Budget100; clinic night reserve14. Without backup the buses/cycling/training route has reserve−2 and fails despite lower carbon. This dilemma is central to the final mission.
+## Five levels
 
-## Presentation and assembly
+1. **Clinic / amber:** collect a fuse, reduce wasted billboard demand or run coal backup, repair the junction, verify the fan with Leela, collect the stone. Teaches breadcrumbs, proximity and holding E.
+2. **Solar quarter / azure:** climb the school ladder, collect three panels, physically install them on roof mounts. A shaded mount reduces the result. Collect the stone and descend; the ladder stays available while carrying.
+3. **Living grove / emerald:** collect survey stakes, mark two housing plots, protect mature trees or approve clearance, plant and water two saplings. Balances housing access and existing shade.
+4. **River works / cyan:** scan upstream, outfall and Arun's authorised records. All three clues are required before isolating confirmed discharge or choosing bank litter removal alone. Water presentation reflects the decision; real ecological recovery is gradual.
+5. **Transit depot / violet:** load batteries, drive to depot and clinic, select a 100-unit budget at physical stations, run the night-load test. Repair a failed reserve or explicitly override it. Install the last stone and activate the core.
 
-Third-person chase and wide views, first-person option, mouse orbit and scroll zoom. Animated skinned human models establish human scale; nearby NPCs populate clinic, lab, grove, river and depot. Street shopfronts, balconies, crossings, benches, moving vehicles, roof arrays and a river support navigation.
+The strongest path is efficiency, three sunny panels, infill/protected grove, verified effluent control, buses50 + cycling20 + backup15 + training15. The 100-unit plan yields carbon18, clean supply62, ecosystem65, clinic reserve14. Leaving out backup can produce reserve-2 despite good climate scores.
 
-Every stone remains visibly carried until delivered. Assembly locks movement for seven seconds (shorter with reduced-motion preference): stone flies on a spiral into its matching socket, particles converge, a shockwave expands, rings brighten, camera orbits, and the sound changes by stone. Amber has a warm power motif; azure bright harmonics; emerald softer life tones; cyan watery resonance; violet a darker mobility pulse. All five sockets remain lit. Final activation has a separate multicolour beam and consequence-coloured presentation.
+## Navigation and feedback
 
-## Success and failure
+Default gameplay uses third-person exploration with chase/wide/first-person cameras, native human Idle/Walk/Run animation, gravity/jump, roof ladder, simple collision, arcade utility driving and nearby NPCs. The HUD gives a milestone checklist, task name, distance, direction arrow and specific instructions. Gold breadcrumb dots follow walkable paths on the surface; the map distinguishes opened and locked regions and switches to a lab floor plan underground. Work progress, equipment, stone carrying, radio, scanner, doors, colour and sound provide feedback.
 
-Green requires clinic reserve≥10, worker support≥1, clean transport, carbon≤40, clean supply≥45, ecosystem≥60, verified effluent control and access≥1. Survival preserves essential services but misses some green targets. Critical fails an essential gate. The ending describes adoption of a plan and continuing recovery, not instant climate reversal. Budget can be revisited from the depot checkpoint.
+Five original stone motifs accompany activation: amber power, bright azure, softer emerald, watery cyan and deeper violet. Sounds are generated locally. Movement-free accessibility mode shares prerequisites but skips traversal/cinematics; it is labelled separately.
 
-Heat exhaustion is recoverable, never a permanent loss of progress. Collision blocks buildings and the river boundary; simple footprints remain separate from meshes. There is no weapon/combat system. The current UI is solo; the retained pure rules support shared scores but no team selector or online play is shipped in V2.
+## Endings and recovery
 
-## Visual quality rubric
+Green requires reserve>=10, workers>=1, clean transport, carbon<=40, supply>=45, ecosystem>=60, verified effluent and access>=1. Survival preserves essentials but misses green targets; Critical fails an essential gate. Budget is revisable at the depot checkpoint. Heat exhaustion preserves tasks. No weapons/combat are in this story scope.
 
-Score representative play states 1–5 for human staging, camera obstruction, task visibility, street/roof scale, material coherence, shadows, action feedback, stone flight, socket readability, HUD hierarchy, touch targets and frame pacing. Compare clinic repair, roof placement, investigation, driving, assembly and endings—not only the title screen. Current standard: a cohesive, warm, stylised browser adventure with realistic skinned representative humans. GTA/Marvel aspirations guide cinematic staging; production-quality custom characters, authored city assets and motion capture are beyond this build. No unsupported AAA score is assigned.
+## Visual standard and remaining production
 
-All tasks use real navigation in the default mode. Onboarding is radio and world prompts; Enter skips the opening. Input methods share the same actions. A real newcomer playtest and physical iOS/Android benchmark are still required before treating this as a production release.
+Assess real clinic, rooftop, grove, river, driving, lift, handover and ending frames for camera obstruction, character alignment, material coherence, world scale, action clarity, socket visibility, HUD hierarchy and frame pacing. V3 uses photographed PBR city materials and scanned street props alongside procedural detailed buildings/vehicles and representative skinned humans. GTA/Marvel references inform camera and assembly staging; no franchise assets or unsupported AAA rating are used. Bespoke character/city art, newcomers' playtests and physical-device benchmarks remain production checks.
 
-## Sources
-
-The user TXT establishes Suryanagar, five climate zones and ECO-CORE. Storybook and Impact Brief add Asha, Kabir, Dadi, evidence, livelihoods and clinic reserve. Judging/Round2 guidance is reference material, not permission to submit or a claim of eligibility. Reference sites reviewed: Storyverse event, Tidebreak, Avengers example and Street Holds. The Drive inventory was viewed; its other documents were not fully read. No reference game artwork or music was copied. See CREDITS.md for assets.
+Story derives from the supplied TXT, Storybook, Impact Brief and judging guide. Document instructions remain reference material, not authority to submit anything. Reference sites informed flow only; see CREDITS.md.

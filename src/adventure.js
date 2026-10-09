@@ -1,11 +1,12 @@
+import {locateAction,LAB_Y,spawn} from './layout.js';
 import {fresh,decide,assess,costs,budgetTotal,restore as restoreRules} from './rules.js';
 export const stoneColors=[0xffa93c,0x35cfff,0x60ef8d,0x56e0df,0xb578ff];
 export const corePosition=[0,10];
-export function freshAdventure(players=1){return {version:2,assembled:[],stone:-1,tasks:[],inventory:'',rules:fresh(players),position:[0,0,16],heat:0,night:null,ending:null};}
+export function freshAdventure(players=1){return {version:3,location:'city',assembled:[],stone:-1,tasks:[],inventory:'',rules:fresh(players),position:[...spawn],heat:0,night:null,ending:null};}
 export const phaseOf=a=>Math.min(a.assembled.length,4);
 const has=(a,id)=>a.tasks.includes(id);
 function action(id,key,x,z,kind='work',duration=1.4,y=0){return {id,key,x,z,y,kind,duration};}
-export function actionsFor(a){
+function missionActions(a){
  if(a.ending)return [];
  const phase=phaseOf(a), list=[];
  if(a.stone>=0)return [action('assemble','act.assemble',0,14,'assemble',.8),...(a.stone===1?[action('ladder','act.climb',-15,-11,'ladder',.7)]:[])];
@@ -44,10 +45,19 @@ export function actionsFor(a){
  }
  return list;
 }
+export function actionsFor(a){
+ if(a.ending)return [];
+ const ride=action('lift',a.location==='lab'?'act.liftUp':'act.liftDown',0,8,'lift',.6,a.location==='lab'?LAB_Y:0);
+ if(a.location==='lab')return [ride,...(a.stone>=0?[action('assemble','act.handover',-2,3,'handover',1,LAB_Y)]:a.assembled.length===5?[action('activate','act.activate',0,-3,'activate',2,LAB_Y)]:[action('brief','act.brief',-2,3,'talk',1,LAB_Y)])];
+ if(a.stone>=0)return [ride,...(a.stone===1?[locateAction(action('ladder','act.climb',0,0,'ladder',.7),1)]:[])];
+ if(a.assembled.length===5)return [ride];
+ return [...missionActions(a).map(x=>locateAction(x,phaseOf(a))),ride];
+}
 export function act(a,id){
  if(!actionsFor(a).some(x=>x.id===id))throw Error('Action not available');
  const n=structuredClone(a),p=phaseOf(a);
- if(id==='ladder')return n;
+ if(id==='ladder'||id==='brief')return n;
+ if(id==='lift'){n.location=n.location==='lab'?'city':'lab';n.position=[0,n.location==='lab'?LAB_Y:0,8];return n;}
  if(id.startsWith('budget:')){const b=id.slice(7),ids=n.rules.budget.includes(b)?n.rules.budget.filter(x=>x!==b):[...n.rules.budget,b];if(budgetTotal(ids)>100)throw Error('Budget exceeded');n.rules.budget=ids;n.night=null;return n;}
  if(id==='night'){n.night=assess(n.rules,n.rules.budget);return n;}
  if(id==='activate'){n.ending=assess(n.rules,n.rules.budget);return n;}
@@ -62,4 +72,4 @@ export function act(a,id){
  if(['circuit','clinicDelivery'].includes(id))n.inventory='';
  return n;
 }
-export function restoreAdventure(raw){try{const a=JSON.parse(raw);if(a.version!==2||!Array.isArray(a.assembled)||a.assembled.length>5||a.assembled.some((x,i)=>x!==i)||!Array.isArray(a.tasks)||a.tasks.length>45)return null;const rules=restoreRules(JSON.stringify(a.rules));if(!rules)return null;const expected=Math.min(a.assembled.length+(a.stone>=0&&a.stone<4?1:0),4);if(rules.stage!==expected)return null;if(a.stone!==-1&&a.stone!==a.assembled.length)return null;if(!Array.isArray(a.position)||a.position.length!==3||a.position.some(x=>!Number.isFinite(x)||Math.abs(x)>50))a.position=[0,0,16];a.rules=rules;a.heat=0;return a;}catch{return null;}}
+export function restoreAdventure(raw){try{const a=JSON.parse(raw);if(a.version!==3||!['city','lab'].includes(a.location)||!Array.isArray(a.assembled)||a.assembled.length>5||a.assembled.some((x,i)=>x!==i)||!Array.isArray(a.tasks)||a.tasks.length>45)return null;const rules=restoreRules(JSON.stringify(a.rules));if(!rules)return null;const expected=Math.min(a.assembled.length+(a.stone>=0&&a.stone<4?1:0),4);if(rules.stage!==expected)return null;if(a.stone!==-1&&a.stone!==a.assembled.length)return null;if(!Array.isArray(a.position)||a.position.length!==3||a.position.some(x=>!Number.isFinite(x)||Math.abs(x)>350))a.position=[...spawn];a.rules=rules;a.heat=0;return a;}catch{return null;}}
