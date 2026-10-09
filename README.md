@@ -16,7 +16,9 @@ Settings offers High/Low detail distance, volume, and a labelled movement-free a
 
 Run `npm test` and `npm run build`. Import this folder's repository into Vercel. Framework: **Other**. Build: **npm run build**. Output: **dist**. Node: **20+**. Keep `vercel.json`, `api`, `public` and `src`. No environment variables/database are required. The final verdict is recomputed by `/api/verdict`; API failure uses a labelled local verdict. No runtime CDN or remotely loaded game assets.
 
-Preview-test before promoting a deployment. This project has not been published to your Vercel account. Other computers need Node 20+ for the local launcher. Opening index.html directly does not work.
+The connected Vercel project is `mission-2050`. Production uses `master` and previews are built from `main`. The [Mission 2050 CI/CD](.github/workflows/ci.yml) workflow runs unit tests, verifies deployable assets, and uses Chromium to test real WebGL rendering, movement, and the complete five-level accessibility journey. **Only a passing push to `main` automatically fast-forwards `master`**, which triggers Vercel's existing Git integration to publish production. No Vercel API token is required for this branch-gated workflow. Avoid pushing directly to `master`, because Vercel would deploy those changes without the `main` gate. Check the GitHub Actions run and Vercel deployment status after releasing.
+
+Other computers need Node 20+ for the local launcher. Opening index.html directly does not work.
 
 ## V3 presentation
 
