@@ -5,9 +5,10 @@ import {spawn} from 'node:child_process';
 import {setTimeout as delay} from 'node:timers/promises';
 import {chromium} from 'playwright';
 
-const server=spawn(process.execPath,['dev.mjs','--production'],{stdio:['ignore','pipe','pipe']});
+const baseURL=process.env.BASE_URL||'http://127.0.0.1:4185';
+const server=process.env.BASE_URL?null:spawn(process.execPath,['dev.mjs','--production'],{stdio:['ignore','pipe','pipe']});
 let browser;let serverError='';
-server.stderr.on('data',chunk=>serverError+=chunk.toString());
+server?.stderr.on('data',chunk=>serverError+=chunk.toString());
 async function ready(){
  for(let i=0;i<80;i++){
   try{const response=await fetch('http://127.0.0.1:4185/');if(response.ok)return;}catch{}
@@ -17,14 +18,14 @@ async function ready(){
  throw Error('Local game server did not become ready: '+serverError);
 }
 try{
- await ready();
+ if(server)await ready();
  browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--no-sandbox']});
  const page=await browser.newPage({viewport:{width:1280,height:720},deviceScaleFactor:1});
  const pageErrors=[],assetErrors=[],decodeErrors=[];
  page.on('console',message=>{if(/Content Security Policy|Couldn.t load texture|Failed to fetch/.test(message.text()))decodeErrors.push(message.text());});
  page.on('pageerror',error=>pageErrors.push(error.message));
  page.on('response',response=>{if(response.status()>=400&&/\/(?:models|textures|vendor)\//.test(response.url()))assetErrors.push(response.status()+' '+response.url());});
- await page.goto('http://127.0.0.1:4185/',{waitUntil:'domcontentloaded',timeout:30000});
+ await page.goto(baseURL+'/',{waitUntil:'domcontentloaded',timeout:30000});
  await page.waitForFunction(()=>Boolean(window.mission2050),{timeout:30000});
  const begin=page.locator('[data-action="begin"]');
  await begin.waitFor({timeout:15000});await begin.click();
@@ -65,13 +66,35 @@ try{
  assert.deepEqual(pageErrors,[],'Unhandled browser exceptions');
  await page.screenshot({path:'game-smoke.png'});
  console.log('3D browser smoke passed',JSON.stringify({drawCalls:snapshot.renderStats.calls,triangles:snapshot.renderStats.triangles,models:snapshot.modelLoaded,guards:snapshot.securityGuards,traffic:snapshot.traffic.length}));
+ // Physical elevator round trip using real movement and interaction controls.
+ await page.keyboard.down('w');
+ try{await page.waitForFunction(()=>window.mission2050.snapshot().nearest?.id==='lift'&&window.mission2050.snapshot().nearest.distance<2,{timeout:45000});}
+ finally{await page.keyboard.up('w');}
+ for(const location of ['lab','city']){
+  if(location==='city'){
+   // The lift exits one metre forward. Step into its centre to select it
+   // ahead of the lab handover marker.
+   await page.keyboard.down('s');
+   try{await page.waitForFunction(()=>window.mission2050.snapshot().nearest?.id==='lift',{timeout:15000});}
+   finally{await page.keyboard.up('s');}
+  }
+  await page.keyboard.down('e');
+  try{await page.waitForFunction(()=>window.mission2050.snapshot().cinematic?.kind==='elevator',{timeout:20000});}
+  finally{await page.keyboard.up('e');}
+  await page.waitForFunction(expected=>{const s=window.mission2050.snapshot();return s.screen==='city'&&s.adventure.location===expected&&!s.cinematic;},location,{timeout:90000});
+  const arrived=await page.evaluate(()=>window.mission2050.snapshot());
+  assert.ok(Math.abs(arrived.position[1]-(location==='lab'?-24:0))<.05,'Lift floor mismatch');
+  await page.screenshot({path:'game-lift-'+location+'.png'});
+ }
+ assert.deepEqual(pageErrors,[],'Lift caused browser exceptions');
+ console.log('Physical elevator round trip passed');
  // Separate no-GPU accessibility playthrough: all five stones, server verdict
  // and restart must complete through actual menu controls.
  const accessible=await browser.newPage({viewport:{width:1100,height:800}});
  const assetRequests=[];
  accessible.on('request',req=>{if(req.url().includes('/models/'))assetRequests.push(req.url());});
  await accessible.addInitScript(()=>localStorage.setItem('m2050.v3.settings',JSON.stringify({text:true,quality:'low',locale:'en',volume:0})));
- await accessible.goto('http://127.0.0.1:4185/',{waitUntil:'domcontentloaded'});
+ await accessible.goto(baseURL+'/',{waitUntil:'domcontentloaded'});
  await accessible.locator('[data-action="begin"]').click();
  const missions=[
   ['fuse','power','circuit','clinic','gem'],
@@ -103,5 +126,5 @@ try{
 
 }finally{
  if(browser)await browser.close();
- server.kill('SIGTERM');
+ server?.kill('SIGTERM');
 }

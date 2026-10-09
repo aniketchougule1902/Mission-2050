@@ -68,7 +68,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: mission2050-browser-smoke
-          path: game-smoke.png
+          path: game-*.png
           retention-days: 7
           if-no-files-found: ignore
 
@@ -115,3 +115,38 @@ jobs:
           git push origin "$VERIFIED_SHA:refs/heads/master"
           echo "Promoted verified commit $VERIFIED_SHA to master."
           echo "Vercel Git integration will build and publish master to production."
+
+  production:
+    name: Verify deployed revision, assets, API and rendered gameplay
+    needs: release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Wait for the exact production commit and verify HTTP boundaries
+        run: node tests/deployment-smoke.mjs
+        env:
+          EXPECTED_REVISION: ${{ github.sha }}
+          BASE_URL: https://mission-2050.vercel.app
+      - name: Install pinned browser test dependency
+        run: npm install --no-save --package-lock=false playwright@1.55.1
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify production WebGL, elevator and five-level journey
+        run: node tests/browser-smoke.mjs
+        env:
+          BASE_URL: https://mission-2050.vercel.app
+      - name: Upload production screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mission2050-production-smoke
+          path: game-*.png
+          retention-days: 7
+          if-no-files-found: ignore
