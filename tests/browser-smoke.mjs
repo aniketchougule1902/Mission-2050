@@ -69,6 +69,33 @@ try{
  assert.deepEqual(pageErrors,[],'Unhandled browser exceptions');
  await page.screenshot({path:'game-smoke.png'});
  console.log('3D browser smoke passed',JSON.stringify({drawCalls:snapshot.renderStats.calls,triangles:snapshot.renderStats.triangles,models:snapshot.modelLoaded,guards:snapshot.securityGuards,traffic:snapshot.traffic.length}));
+ // Exercise Three.js watering and planting geometries in a real Chromium WebGL session.
+ // This checks animation timing, persistent save reconstruction and cleanup.
+ const ecologyResults=await page.evaluate(async()=>{
+  const [T,{createEcologyEffects,ecologicalActionIds,ecologicalActionSite}]=await Promise.all([
+   import('/vendor/three.module.js'),import('/src/ecology-effects.js')]);
+  const city=new T.Group(),actor=new T.Group(),effects=createEcologyEffects(T,city,actor);
+  const initial=ecologicalActionIds.map(id=>[id,ecologicalActionSite(id)]);
+  const simulate=async id=>{
+   const promise=effects.play(id);
+   for(let i=0;i<165;i++)effects.tick(1/60,null);
+   return await promise;
+  };
+  const planted=await simulate('housing1');
+  effects.sync(['housing1']);
+  const plantedVisible=city.children.some(x=>x.name==='Ecosystem-housing1'&&x.visible&&x.children[1].scale.x>.9);
+  const watered=await simulate('water1');
+  effects.sync(['housing1','water1']);
+  const grown=city.children.some(x=>x.name==='Ecosystem-water1'&&x.visible&&x.children[1].scale.x>1.3);
+  const waterParticles=city.children.some(x=>x.name==='Ecosystem-water1'&&x.children.some(y=>y.isPoints));
+  effects.dispose();
+  return {initial,planted,watered,plantedVisible,grown,waterParticles};
+ });
+ assert.deepEqual(ecologyResults.initial.map(x=>x[0]),['housing1','housing2','water1','water2']);
+ assert.ok(ecologyResults.planted&&ecologyResults.plantedVisible,'Native WebGL tree planting effect failed');
+ assert.ok(ecologyResults.watered&&ecologyResults.grown&&ecologyResults.waterParticles,'Water spray and tree-growth effect failed');
+ assert.deepEqual(pageErrors,[],'Ecology effects caused JS exceptions');
+ console.log('Ecology render/timing test passed',JSON.stringify(ecologyResults));
  // Physical elevator round trip using real movement and interaction controls.
  await page.keyboard.down('w');
  try{await page.waitForFunction(()=>window.mission2050.snapshot().nearest?.id==='lift'&&window.mission2050.snapshot().nearest.distance<2,{timeout:45000});}
