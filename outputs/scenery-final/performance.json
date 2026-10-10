@@ -1,0 +1,23 @@
+{
+  "renderer": "ANGLE (AMD, AMD Radeon 740M Graphics (0x00001901) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "fps": "144 FPS",
+  "frames": 1388,
+  "p50": 6.900000000001455,
+  "p95": 7.100000000002183,
+  "stats": {
+    "calls": 292,
+    "triangles": 172870,
+    "visibleChunks": 221,
+    "totalChunks": 779,
+    "renderTier": "balanced",
+    "pixelRatio": 1,
+    "frameMS": 3.700000047683716,
+    "targetFPS": 90
+  },
+  "position": [
+    24,
+    0,
+    41
+  ],
+  "errors": []
+}

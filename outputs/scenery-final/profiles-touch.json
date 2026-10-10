@@ -1,0 +1,60 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "quality": "high",
+      "stats": {
+        "calls": 289,
+        "triangles": 172700,
+        "visibleChunks": 250,
+        "totalChunks": 779,
+        "renderTier": "high",
+        "pixelRatio": 1,
+        "frameMS": 6.299999952316284,
+        "targetFPS": 90
+      }
+    },
+    {
+      "quality": "low",
+      "stats": {
+        "calls": 264,
+        "triangles": 154758,
+        "visibleChunks": 134,
+        "totalChunks": 779,
+        "renderTier": "low",
+        "pixelRatio": 0.8398185154477655,
+        "frameMS": 4.899999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "quality": "balanced",
+      "stats": {
+        "calls": 290,
+        "triangles": 172834,
+        "visibleChunks": 221,
+        "totalChunks": 779,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 6.599999904632568,
+        "targetFPS": 90
+      }
+    },
+    {
+      "touch": true,
+      "width": 390,
+      "scroll": 390,
+      "stats": {
+        "calls": 182,
+        "triangles": 135572,
+        "visibleChunks": 221,
+        "totalChunks": 779,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 5.300000071525574,
+        "targetFPS": 90
+      }
+    }
+  ],
+  "errors": []
+}

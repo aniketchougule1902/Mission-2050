@@ -83,17 +83,17 @@ try{
   };
   const planted=await simulate('housing1');
   effects.sync(['housing1']);
-  const plantedVisible=city.children.some(x=>x.name==='Ecosystem-housing1'&&x.visible&&x.children[1].scale.x>.9);
+  const plantedVisible=city.children.some(x=>x.name==='Ecosystem-housing1'&&x.visible&&x.children.some(c=>c.name==='HousingSurveyBoundary'&&c.children.length===8));
   const watered=await simulate('water1');
   effects.sync(['housing1','water1']);
-  const grown=city.children.some(x=>x.name==='Ecosystem-water1'&&x.visible&&x.children[1].scale.x>1.3);
+  const grown=city.children.some(x=>x.name==='Ecosystem-water1'&&x.visible&&x.children[1].scale.x>.6&&x.children[1].scale.x<=.7);
   const waterParticles=city.children.some(x=>x.name==='Ecosystem-water1'&&x.children.some(y=>y.isPoints));
   effects.dispose();
   return {initial,planted,watered,plantedVisible,grown,waterParticles};
  });
  assert.deepEqual(ecologyResults.initial.map(x=>x[0]),['housing1','housing2','water1','water2']);
- assert.ok(ecologyResults.planted&&ecologyResults.plantedVisible,'Native WebGL tree planting effect failed');
- assert.ok(ecologyResults.watered&&ecologyResults.grown&&ecologyResults.waterParticles,'Water spray and tree-growth effect failed');
+ assert.ok(ecologyResults.planted&&ecologyResults.plantedVisible,'Native WebGL construction boundary marking failed');
+ assert.ok(ecologyResults.watered&&ecologyResults.grown&&ecologyResults.waterParticles,'Sapling planting and water spray failed');
  assert.deepEqual(pageErrors,[],'Ecology effects caused JS exceptions');
  console.log('Ecology render/timing test passed',JSON.stringify(ecologyResults));
  // Physical elevator round trip using real movement and interaction controls.

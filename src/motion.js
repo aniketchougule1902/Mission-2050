@@ -20,19 +20,38 @@ export function createObstacleIndex(obstacles,cellSize=24,contactMargin=1.5){
 
 // Substep kinematic motion to stop fast cars crossing thin walls in one frame.
 // Walking permits separate-axis sliding, driving stops at the first contact.
-export function sweptMove(x,z,dx,dz,isBlocked,slide=false,maxStep=.28){
+export function sweptMove(x,z,dx,dz,isBlocked,slide=false,maxStep=.15){
  if(!(maxStep>0)||![x,z,dx,dz].every(Number.isFinite))throw RangeError('Invalid motion');
  const steps=Math.max(1,Math.ceil(Math.hypot(dx,dz)/maxStep)),sx=dx/steps,sz=dz/steps;
- let hit=false;
+ let hit=false,nx=0,nz=0;
  for(let i=0;i<steps;i++){
-  const nx=x+sx,nz=z+sz;
-  if(!isBlocked(nx,nz)){x=nx;z=nz;continue;}
+  const nextX=x+sx,nextZ=z+sz;
+  if(!isBlocked(nextX,nextZ)){x=nextX;z=nextZ;continue;}
   hit=true;
+  const blockX=isBlocked(x+sx,z),blockZ=isBlocked(x,z+sz);
+  nx=blockX?-Math.sign(sx):0;nz=blockZ?-Math.sign(sz):0;
+  if(!nx&&!nz){nx=-sx;nz=-sz;}
+  const length=Math.hypot(nx,nz)||1;nx/=length;nz/=length;
   if(!slide)break;
-  if(!isBlocked(nx,z))x=nx;
-  if(!isBlocked(x,nz))z=nz;
+  if(!isBlocked(nextX,z))x=nextX;
+  if(!isBlocked(x,nextZ))z=nextZ;
  }
- return {x,z,hit};
+ return {x,z,hit,nx,nz};
+}
+
+export function reflectVelocity(x,z,nx,nz,restitution=.18){
+ const inward=x*nx+z*nz;
+ return inward<0?{x:x-(1+restitution)*inward*nx,z:z-(1+restitution)*inward*nz}:{x,z};
+}
+
+// Resolve velocity in the vehicle frame: lateral grip drops with slip angle.
+export function gripVelocity(x,z,heading,dt,braking=false){
+ const s=Math.sin(heading),c=Math.cos(heading);
+ const forward=-x*s-z*c,lateral=x*c-z*s;
+ const slip=Math.atan2(Math.abs(lateral),Math.max(1,Math.abs(forward)));
+ const grip=Math.abs(forward)>10?Math.max(2,9-slip*8):14;
+ const side=lateral*Math.exp(-dt*(braking?grip*.45:grip));
+ return {x:-s*forward+c*side,z:-c*forward-s*side};
 }
 
 // Bounded 60 Hz physics prevents refresh-rate-dependent integration and huge

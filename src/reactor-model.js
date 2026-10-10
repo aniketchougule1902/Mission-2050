@@ -1,3 +1,4 @@
+import {batchStaticMeshes} from './static-batching.js';
 // Authored reactor source; also exported as ECO_CORE.glb for inspection/reuse.
 export function createReactor(T){
  const root=new T.Group();root.name='ECO_CORE';
@@ -8,12 +9,12 @@ export function createReactor(T){
  const glass=new T.MeshPhysicalMaterial({color:0x83d8e1,metalness:.1,roughness:.05,transparent:true,opacity:.25,side:T.DoubleSide,clearcoat:1});
  function mesh(geo,mat,pos,name){const m=new T.Mesh(geo,mat);m.position.set(...pos);m.name=name||'Housing';m.castShadow=true;m.receiveShadow=true;root.add(m);return m;}
  const box=(w,h,d,mat,pos,name)=>mesh(new T.BoxGeometry(w,h,d),mat,pos,name);
- const cyl=(r,h,mat,pos,name)=>mesh(new T.CylinderGeometry(r,r,h,64),mat,pos,name);
- const torus=(r,t,mat,pos,name)=>{const m=mesh(new T.TorusGeometry(r,t,12,96),mat,pos,name);m.rotation.x=Math.PI/2;return m;};
+ const cyl=(r,h,mat,pos,name)=>mesh(new T.CylinderGeometry(r,r,h,32),mat,pos,name);
+ const torus=(r,t,mat,pos,name)=>{const m=mesh(new T.TorusGeometry(r,t,r<.6?5:8,r<.6?16:48),mat,pos,name);m.rotation.x=Math.PI/2;return m;};
  cyl(3.4,.28,steel,[0,.14,0],'Foundation');cyl(3.15,.22,silver,[0,.39,0]);cyl(2.9,.22,black,[0,.61,0]);
  for(let i=0;i<32;i++){const a=i/32*Math.PI*2;box(.12,.12,.18,silver,[Math.sin(a)*3.2,.37,Math.cos(a)*3.2],'AnchorBolt').rotation.y=a;}
  cyl(1.3,.7,steel,[0,1.07,0]);torus(1.28,.1,cyan,[0,1.4,0]);
- const plasma=mesh(new T.SphereGeometry(.9,48,32),new T.MeshStandardMaterial({color:0x98f7ed,emissive:0x5bdbd6,emissiveIntensity:2.3,metalness:.1,roughness:.16}),[0,2.55,0],'PLASMA');
+ const plasma=mesh(new T.SphereGeometry(.9,32,20),new T.MeshStandardMaterial({color:0x98f7ed,emissive:0x5bdbd6,emissiveIntensity:2.3,metalness:.1,roughness:.16}),[0,2.55,0],'PLASMA');
  const containment=cyl(1.22,2.4,glass,[0,2.65,0],'ContainmentGlass');
  for(const y of [1.48,3.84]){cyl(1.5,.14,silver,[0,y,0]);torus(1.55,.035,cyan,[0,y+.1,0]);}
  cyl(1.13,.4,black,[0,4.13,0]);cyl(.64,.45,silver,[0,4.55,0]);
@@ -36,5 +37,7 @@ export function createReactor(T){
   sockets.push(new T.Vector3(x,1.95,z));stones.push(stone);
  }
  for(let i=0;i<20;i++){const a=i/20*Math.PI*2;const vent=box(.12,.24,.34,black,[Math.sin(a)*2.5,.85,Math.cos(a)*2.5]);vent.rotation.y=a;}
- return {root,plasma,containment,sockets,stones,rings:[0,1,2].map(i=>root.getObjectByName('RING_'+i))};
+ const rings=[0,1,2].map(i=>root.getObjectByName('RING_'+i)),dynamic=new Set([plasma,containment,...rings,...stones]);
+ batchStaticMeshes(T,root,root.children.filter(m=>m.isMesh&&!dynamic.has(m)),{chunkSize:Infinity});
+ return {root,plasma,containment,sockets,stones,rings};
 }

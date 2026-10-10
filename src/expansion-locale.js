@@ -1,5 +1,20 @@
 import {addTranslations} from './locale.js';
 addTranslations({
+ 'settings.balanced':'Balanced · smooth browser play','settings.high':'Cinematic · extra effects','settings.low':'Performance · reduced resolution',
+ 'conv.asha':'Asha','conv.kabir':'Kabir','conv.meera':'Dr. Meera','conv.leela':'Leela','conv.hari':'Hari','conv.arun':'Arun','conv.dadi':'Dadi','conv.advance':'Continue / Enter',
+ 'conv.stone':'DR. MEERA: The evidence is secure. Bring the core down to me; we will restore one more lifeline.',
+ 'conv.handover':'DR. MEERA: I will carry this evidence to its cell. We open the next district only after the clamps are stable.',
+ 'conv.descent':'ASHA: Twenty-four metres below the street, every restored lifeline has a place. The clinic above still needs power tonight.',
+ 'conv.greenAsha':'ASHA: The night test passed. Clean transport, worker support and the clinic reserve are all protected.',
+ 'conv.greenDadi':'DADI: The fan is turning. Keep checking the people who depend on it. A breath is more than a score.',
+ 'conv.survivalAsha':'ASHA: Essential services are safe tonight. Our climate and access work still needs improvement.',
+ 'conv.survivalDadi':'DADI: Then keep working, together. The city needs more than one safe night.',
+ 'conv.criticalAsha':'ASHA: Our plan failed an essential gate. We must revisit the budget and the night test.',
+ 'conv.criticalDadi':'DADI: You powered the city, but did you protect everyone in it? A breath is more than a score.',
+ 'nav.km':'km', 'nav.legend':'Gold: objective · Cyan: elevator · Mint: stone · White: you · Dotted trail: recent path',
+ 'nav.zoomIn':'Zoom in','nav.zoomOut':'Zoom out','nav.reset':'Reset view','nav.pan':'Drag to pan; use arrow keys to pan and + / − to zoom.',
+ 'adv.controls':'WASD move · Shift run · E work · Q scan · Space jump / brake · F vehicle · H horn · C camera · M map',
+
  'adv.labHandover':'Give your stone to Dr. Meera','adv.activateReady':'Five core cells online. Activate the reactor.','adv.exitLab':'Return to the surface for your next mission','adv.level':'LEVEL','adv.city':'SURYANAGAR / SURFACE','adv.lab':'ECO-CORE / UNDERGROUND RESEARCH','adv.locked':'LOCKED','adv.lockedHelp':'This district is sealed. Deliver the current stone to Dr. Meera to open the next area.','adv.unlocked':'NEW DISTRICT UNLOCKED','adv.allStones':'ALL FIVE CORE CELLS ONLINE',
  'adv.return':'Take the stone to the research elevator','adv.ready':'Descend to the research centre and activate ECO-CORE.','adv.desc':'Explore a city that opens district by district. Recover five stones, descend into the research centre, and let Dr. Meera restore the heart of Suryanagar.',
  'adv.mapdesc':'Bright districts are open. Dark districts unlock after Dr. Meera installs the previous stone. Gold breadcrumbs lead to your current task. The cyan marker is the research elevator. Driving is available from the first level.',

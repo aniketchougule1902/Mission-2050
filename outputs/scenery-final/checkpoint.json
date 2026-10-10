@@ -1,0 +1,133 @@
+{
+  "version": 3,
+  "layoutVersion": 2,
+  "location": "lab",
+  "assembled": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "stone": -1,
+  "tasks": [
+    "fuse",
+    "power",
+    "circuit",
+    "clinic",
+    "panels",
+    "panel1",
+    "panel2",
+    "panel3",
+    "stakes",
+    "housing1",
+    "housing2",
+    "grove",
+    "water1",
+    "water2",
+    "scan1",
+    "scan2",
+    "scan3",
+    "valve",
+    "cargo",
+    "depotDelivery",
+    "clinicDelivery"
+  ],
+  "inventory": "",
+  "rules": {
+    "version": 1,
+    "stage": 4,
+    "decisions": [
+      {
+        "stage": "energy",
+        "id": "efficiency"
+      },
+      {
+        "stage": "solar",
+        "id": "school"
+      },
+      {
+        "stage": "land",
+        "id": "infill"
+      },
+      {
+        "stage": "river",
+        "id": "effluent"
+      }
+    ],
+    "budget": [
+      "buses",
+      "cycling",
+      "training",
+      "backup"
+    ],
+    "carbon": 44,
+    "energy": 54,
+    "ecosystem": 65,
+    "reserve": 12,
+    "workers": 1,
+    "access": 0,
+    "scores": [
+      180
+    ],
+    "evidence": [],
+    "position": [
+      0,
+      15
+    ]
+  },
+  "position": [
+    23.96834016963275,
+    -24,
+    21.104725727555405
+  ],
+  "heat": 13.515719999995685,
+  "night": {
+    "ending": "green",
+    "total": 100,
+    "reserve": 14,
+    "workers": 3,
+    "carbon": 18,
+    "energy": 62,
+    "ecosystem": 65,
+    "access": 2,
+    "validRiver": true,
+    "checks": {
+      "clinic": true,
+      "workers": true,
+      "transport": true,
+      "carbon": true,
+      "ecosystem": true,
+      "river": true
+    }
+  },
+  "ending": {
+    "version": 1,
+    "ending": "green",
+    "total": 100,
+    "reserve": 14,
+    "workers": 3,
+    "carbon": 18,
+    "energy": 62,
+    "ecosystem": 65,
+    "access": 2,
+    "validRiver": true,
+    "checks": {
+      "clinic": true,
+      "workers": true,
+      "transport": true,
+      "carbon": true,
+      "ecosystem": true,
+      "river": true
+    }
+  },
+  "vehicle": {
+    "position": [
+      14,
+      0,
+      34
+    ],
+    "heading": 3.141592653589793,
+    "driving": false
+  }
+}

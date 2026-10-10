@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "savedVehicle": {
+    "position": [
+      14,
+      0,
+      42.98883689821959
+    ],
+    "heading": 3.141592653589793,
+    "driving": true
+  },
+  "restoredVehicle": [
+    14,
+    0,
+    42.98883689821959
+  ],
+  "restart": true,
+  "errors": []
+}

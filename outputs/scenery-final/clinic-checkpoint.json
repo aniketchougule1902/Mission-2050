@@ -1,0 +1,113 @@
+{
+  "version": 3,
+  "layoutVersion": 2,
+  "location": "city",
+  "assembled": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "stone": 4,
+  "tasks": [
+    "fuse",
+    "power",
+    "circuit",
+    "clinic",
+    "panels",
+    "panel1",
+    "panel2",
+    "panel3",
+    "stakes",
+    "housing1",
+    "housing2",
+    "grove",
+    "water1",
+    "water2",
+    "scan1",
+    "scan2",
+    "scan3",
+    "valve",
+    "cargo",
+    "depotDelivery",
+    "clinicDelivery"
+  ],
+  "inventory": "stone",
+  "rules": {
+    "version": 1,
+    "stage": 4,
+    "decisions": [
+      {
+        "stage": "energy",
+        "id": "efficiency"
+      },
+      {
+        "stage": "solar",
+        "id": "school"
+      },
+      {
+        "stage": "land",
+        "id": "infill"
+      },
+      {
+        "stage": "river",
+        "id": "effluent"
+      }
+    ],
+    "budget": [
+      "buses",
+      "cycling",
+      "training",
+      "backup"
+    ],
+    "carbon": 44,
+    "energy": 54,
+    "ecosystem": 65,
+    "reserve": 12,
+    "workers": 1,
+    "access": 0,
+    "scores": [
+      180
+    ],
+    "evidence": [],
+    "position": [
+      0,
+      15
+    ]
+  },
+  "position": [
+    -116.20930284368522,
+    0,
+    192.9565090408852
+  ],
+  "heat": 40.63795999999664,
+  "night": {
+    "ending": "green",
+    "total": 100,
+    "reserve": 14,
+    "workers": 3,
+    "carbon": 18,
+    "energy": 62,
+    "ecosystem": 65,
+    "access": 2,
+    "validRiver": true,
+    "checks": {
+      "clinic": true,
+      "workers": true,
+      "transport": true,
+      "carbon": true,
+      "ecosystem": true,
+      "river": true
+    }
+  },
+  "ending": null,
+  "vehicle": {
+    "position": [
+      14,
+      0,
+      34
+    ],
+    "heading": 3.141592653589793,
+    "driving": false
+  }
+}

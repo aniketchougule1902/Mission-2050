@@ -1,9 +1,7 @@
 // Shared renderer-side ecological action presentation. No external assets or runtime network.
-const SITES = Object.freeze({
- housing1:[93,-104],housing2:[93,-123],
- water1:[117,-124],water2:[136,-126]
-});
-const GROWTH_TIME={housing1:2.2,housing2:2.2,water1:2.5,water2:2.5};
+import {ecologySites as SITES} from './layout.js';
+const GROWTH_TIME={housing1:1.1,housing2:1.1,water1:2.5,water2:2.5};
+export const ecologicalActionKind=id=>id?.startsWith('housing')?'survey':id?.startsWith('water')?'plant':null;
 const smooth=x=>{const t=Math.max(0,Math.min(1,x));return t*t*(3-2*t);};
 export const ecologicalActionIds=Object.freeze(Object.keys(SITES));
 export const ecologicalActionSite=id=>SITES[id]?[...SITES[id]]:null;
@@ -20,11 +18,18 @@ export function createEcologyEffects(T,city,player){
  const leafGeometry=new T.IcosahedronGeometry(.52,1);
  const canGeometry=new T.CylinderGeometry(.18,.21,.36,12);
  const nozzleGeometry=new T.CylinderGeometry(.065,.095,.34,8);
- const entries=new Map();
+ const entries=new Map();const stakeGeometry=new T.CylinderGeometry(.045,.045,.65,6),tapeGeometry=new T.BoxGeometry(1,.035,.025),stakeMaterial=new T.MeshStandardMaterial({color:0xeab267,roughness:.8}),tapeMaterial=new T.MeshBasicMaterial({color:0xf0c66b});
  for(const [id,[x,z]] of Object.entries(SITES)){
   const root=new T.Group();root.position.set(x,0,z);root.name='Ecosystem-'+id;city.add(root);
+  if(ecologicalActionKind(id)==='survey'){
+   const stakes=new T.Group();stakes.name='HousingSurveyBoundary';root.add(stakes);
+   for(const sx of [-3,3])for(const sz of [-4,4]){const stake=new T.Mesh(stakeGeometry,stakeMaterial);stake.position.set(sx,.325,sz);stakes.add(stake);}
+   for(const sz of [-4,4]){const tape=new T.Mesh(tapeGeometry,tapeMaterial);tape.scale.x=6;tape.position.set(0,.35,sz);stakes.add(tape);}
+   for(const sx of [-3,3]){const tape=new T.Mesh(tapeGeometry,tapeMaterial);tape.scale.x=8;tape.rotation.y=Math.PI/2;tape.position.set(sx,.35,0);stakes.add(tape);}
+   root.visible=false;entries.set(id,{id,root,stakes,x,z,done:false,kind:'survey'});continue;
+  }
   const soil=new T.Mesh(soilGeometry,soilMaterial);soil.position.y=.05;root.add(soil);
-  const tree=new T.Group();root.add(tree);
+  const tree=new T.Group();tree.name='RestorationSapling';root.add(tree);
   const trunk=new T.Mesh(trunkGeometry,trunkMaterial);trunk.position.y=.64;tree.add(trunk);
   const leaves=[];
   for(const [i,offset] of [[0,[0,1.43,0]],[1,[-.37,1.17,-.03]],[2,[.35,1.18,.16]]]){
@@ -34,7 +39,7 @@ export function createEcologyEffects(T,city,player){
   const positions=new Float32Array(32*3);waterGeometry.setAttribute('position',new T.BufferAttribute(positions,3));
   const spray=new T.Points(waterGeometry,waterMaterial.clone());spray.visible=false;spray.frustumCulled=false;root.add(spray);
   tree.scale.setScalar(.001);root.visible=false;
-  entries.set(id,{id,root,tree,soil,spray,positions,leaves,x,z,done:false});
+  entries.set(id,{id,root,tree,soil,spray,positions,leaves,x,z,done:false,kind:'plant'});
  }
  const can=new T.Group();can.name='GardeningCan';player.add(can);
  const container=new T.Mesh(canGeometry,rimMaterial);can.add(container);
@@ -48,28 +53,28 @@ export function createEcologyEffects(T,city,player){
    e.done=completed.has(id);
    if(active?.id===id)continue;
    e.root.visible=e.done;
-   e.tree.scale.setScalar(e.done?(id.startsWith('water')?1.38:1):.001);
-   e.spray.visible=false;
+   if(e.kind==='survey')e.stakes.scale.y=e.done?1:.001;else{e.tree.scale.setScalar(e.done?.7:.001);e.spray.visible=false;}
   }
  }
  function play(id){
   const e=entries.get(id);
   if(!e)return Promise.resolve(false);
   if(active)return Promise.reject(new Error('Another environmental animation is playing'));
-  e.root.visible=true;e.tree.scale.setScalar(id.startsWith('water')?.35:.06);
-  can.visible=true;
+  e.root.visible=true;if(e.kind==='plant')e.tree.scale.setScalar(.06);else e.stakes.scale.y=.05;
+  can.visible=e.kind==='plant';
   return new Promise(resolve=>{active={id,e,elapsed:0,duration:GROWTH_TIME[id],resolve};});
  }
  function tick(dt,hero){
   if(!active){can.visible=false;if(hero?.root)hero.root.rotation.x+=(0-hero.root.rotation.x)*Math.min(1,dt*10);return;}
   const a=active,{e,id}=a;
-  a.elapsed+=Math.min(.07,Math.max(0,dt));
-  const p=Math.min(1,a.elapsed/a.duration),grow=smooth(p),watering=id.startsWith('water');
+  a.elapsed+=Math.min(.25,Math.max(0,dt));
+  const p=Math.min(1,a.elapsed/a.duration),grow=smooth(p),watering=e.kind==='plant';
+  if(e.kind==='survey'){e.stakes.scale.y=.05+.95*grow;if(hero?.root)hero.root.rotation.x+=(-.15-hero.root.rotation.x)*Math.min(1,dt*7);if(p>=1){e.done=true;e.stakes.scale.y=1;const done=a.resolve;active=null;done(true);}return;}
   // Lean toward the work and tip the can, rather than replacing native character skeleton clips.
   if(hero?.root)hero.root.rotation.x+=( (watering?-.20:-.31)-hero.root.rotation.x)*Math.min(1,dt*7);
   can.position.set(.46,1.02-.20*Math.sin(Math.PI*p),-.14-.1*Math.sin(Math.PI*p));
   can.rotation.z=watering?-.6*Math.sin(Math.PI*p):-.27*Math.sin(Math.PI*p);
-  e.tree.scale.setScalar((watering?.35:.06)+(watering?1.03:.94)*grow);
+  e.tree.scale.setScalar(.06+.64*smooth(Math.min(1,p/.4)));
   if(watering){
    e.spray.visible=p>.13&&p<.92;e.spray.material.opacity=e.spray.visible?.88:0;
    if(e.spray.visible){
@@ -84,7 +89,7 @@ export function createEcologyEffects(T,city,player){
    }
   }
   if(p>=1){
-   e.done=true;e.root.visible=true;e.spray.visible=false;e.tree.scale.setScalar(watering?1.38:1);
+   e.done=true;e.root.visible=true;e.spray.visible=false;e.tree.scale.setScalar(.7);
    can.visible=false;can.rotation.z=0;
    const done=a.resolve;active=null;done(true);
   }
@@ -93,7 +98,8 @@ export function createEcologyEffects(T,city,player){
   if(active){active.resolve(false);active=null;}
   city.remove(...[...entries.values()].map(e=>e.root));
   player.remove(can);
-  for(const e of entries.values()){e.spray.geometry.dispose();e.spray.material.dispose();}
+  for(const e of entries.values())if(e.spray){e.spray.geometry.dispose();e.spray.material.dispose();}
+  stakeGeometry.dispose();tapeGeometry.dispose();stakeMaterial.dispose();tapeMaterial.dispose();
   trunkGeometry.dispose();soilGeometry.dispose();leafGeometry.dispose();canGeometry.dispose();nozzleGeometry.dispose();
   soilMaterial.dispose();trunkMaterial.dispose();leafMaterial.dispose();darkLeafMaterial.dispose();rimMaterial.dispose();waterMaterial.dispose();
  }};

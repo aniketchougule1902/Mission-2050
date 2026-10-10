@@ -3,6 +3,10 @@ import {fresh,decide,assess,costs,budgetTotal,restore as restoreRules} from './r
 export const stoneColors=[0xffa93c,0x35cfff,0x60ef8d,0x56e0df,0xb578ff];
 export const corePosition=[LAB_X,LAB_Z-8];
 export function freshAdventure(players=1){return {version:3,layoutVersion:2,location:'city',assembled:[],stone:-1,tasks:[],inventory:'',rules:fresh(players),position:[...spawn],heat:0,night:null,ending:null};}
+export function restoreVehicle(raw,location='city'){
+ if(!raw||!Array.isArray(raw.position)||raw.position.length!==3||raw.position.some(v=>!Number.isFinite(v))||Math.abs(raw.position[0])>300||Math.abs(raw.position[2])>300||Math.abs(raw.position[1])>.1||!Number.isFinite(raw.heading)||typeof raw.driving!=='boolean')return null;
+ return {position:[raw.position[0],0,raw.position[2]],heading:Math.atan2(Math.sin(raw.heading),Math.cos(raw.heading)),driving:location==='city'&&raw.driving};
+}
 export const phaseOf=a=>Math.min(a.assembled.length,4);
 const has=(a,id)=>a.tasks.includes(id);
 function action(id,key,x,z,kind='work',duration=1.4,y=0){return {id,key,x,z,y,kind,duration};}
@@ -72,4 +76,4 @@ export function act(a,id){
  if(['circuit','clinicDelivery'].includes(id))n.inventory='';
  return n;
 }
-export function restoreAdventure(raw){try{const a=JSON.parse(raw);if(a.version!==3||!['city','lab'].includes(a.location)||!Array.isArray(a.assembled)||a.assembled.length>5||a.assembled.some((x,i)=>x!==i)||!Array.isArray(a.tasks)||a.tasks.length>45)return null;const rules=restoreRules(JSON.stringify(a.rules));if(!rules)return null;const expected=Math.min(a.assembled.length+(a.stone>=0&&a.stone<4?1:0),4);if(rules.stage!==expected)return null;if(a.stone!==-1&&a.stone!==a.assembled.length)return null;if(!Array.isArray(a.position)||a.position.length!==3||a.position.some(x=>!Number.isFinite(x)||Math.abs(x)>350))a.position=[...spawn];if(a.layoutVersion!==2){if(a.location==='lab'){a.position[0]+=LAB_X;a.position[2]+=LAB_Z;}a.layoutVersion=2;}a.rules=rules;a.heat=0;return a;}catch{return null;}}
+export function restoreAdventure(raw){try{const a=JSON.parse(raw);if(a.version!==3||!['city','lab'].includes(a.location)||!Array.isArray(a.assembled)||a.assembled.length>5||a.assembled.some((x,i)=>x!==i)||!Array.isArray(a.tasks)||a.tasks.length>45)return null;const rules=restoreRules(JSON.stringify(a.rules));if(!rules)return null;const expected=Math.min(a.assembled.length+(a.stone>=0&&a.stone<4?1:0),4);if(rules.stage!==expected)return null;if(a.stone!==-1&&a.stone!==a.assembled.length)return null;if(!Array.isArray(a.position)||a.position.length!==3||a.position.some(x=>!Number.isFinite(x)||Math.abs(x)>350))a.position=[...spawn];if(a.layoutVersion!==2){if(a.location==='lab'){a.position[0]+=LAB_X;a.position[2]+=LAB_Z;}a.layoutVersion=2;}a.rules=rules;a.vehicle=restoreVehicle(a.vehicle,a.location);a.heat=0;return a;}catch{return null;}}

@@ -2,7 +2,7 @@ import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {resolve,extname} from 'node:path';
 import verdict from './api/verdict.js';
-const base=process.cwd();
+const base=process.cwd(),port=Number(process.env.PORT||4185);
 const config=JSON.parse(await readFile(resolve(base,'vercel.json'),'utf8'));
 const production=process.argv.includes('--production');
 const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.json':'application/json','.glb':'model/gltf-binary','.jpg':'image/jpeg','.hdr':'application/octet-stream'};
@@ -14,4 +14,4 @@ createServer(async(req,res)=>{
  const file=resolve(root,'.'+(path==='/'?'/index.html':path));
  if(!file.startsWith(root+String.fromCharCode(92))&&!file.startsWith(root+'/')){res.writeHead(403);res.end();return;}
  try{const content=await readFile(file);res.writeHead(200,{'Content-Type':types[extname(file)]||'application/octet-stream'});res.end(content);}catch{res.writeHead(404);res.end('Not found');}
-}).listen(4185,'127.0.0.1',()=>console.log('Local: http://127.0.0.1:4185'));
+}).listen(port,'127.0.0.1',()=>console.log('Local: http://127.0.0.1:'+port));

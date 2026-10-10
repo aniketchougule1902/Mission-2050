@@ -2,50 +2,57 @@ import * as T from '/vendor/three.module.js';
 import {GLTFLoader} from '/vendor/GLTFLoader.js';
 import {HDRLoader} from '/vendor/HDRLoader.js';
 import {adventureController} from './controller.js';
-import {districts,roads,LAB_X,LAB_Z} from './layout.js';
-export function createWorld(canvas,onFPS){
+import {batchStaticMeshes} from './static-batching.js';
+import {districts,roads,LAB_X,LAB_Z,serviceConnections,buildingLots,treeSites} from './layout.js';
+export function createWorld(canvas,onFPS,{quality='balanced'}={}){
  const renderer=new T.WebGLRenderer({canvas,antialias:false,alpha:false,stencil:false,powerPreference:'high-performance'});
  renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.shadowMap.enabled=false; // baked ground/contact shadows: no expensive GPU shadow passes
  renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.16;renderer.outputColorSpace=T.SRGBColorSpace;
  const scene=new T.Scene();scene.background=new T.Color(0xa5b3bd);scene.fog=new T.Fog(0xb1bcc3,170,680);
+ const skyMaterial=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms:{day:{value:0}},vertexShader:'varying vec3 direction;void main(){direction=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'uniform float day;varying vec3 direction;void main(){float height=clamp(normalize(direction).y,0.,1.);vec3 horizon=mix(vec3(.65,.72,.76),vec3(.87,.62,.40),day);vec3 top=mix(vec3(.28,.43,.57),vec3(.34,.40,.56),day);gl_FragColor=vec4(mix(horizon,top,smoothstep(0.,.75,height)),1.); #include <colorspace_fragment> }'.replace(' #include','\n#include').replace('> }','>\n}')});
+ const sky=new T.Mesh(new T.SphereGeometry(800,24,12),skyMaterial);sky.frustumCulled=false;scene.add(sky);
  const camera=new T.PerspectiveCamera(58,innerWidth/innerHeight,.08,1100),city=new T.Group(),lab=new T.Group();scene.add(city,lab);lab.visible=false;lab.position.set(LAB_X,0,LAB_Z);
  const hemi=new T.HemisphereLight(0xe7eef1,0x777b62,1.25);scene.add(hemi);
  const sun=new T.DirectionalLight(0xffe7cb,2.6);sun.position.set(-50,75,30);sun.castShadow=false;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-55,right:55,top:55,bottom:-55,near:.5,far:220});sun.shadow.bias=-.00025;sun.shadow.normalBias=.03;scene.add(sun,sun.target);
  // Defer HDR environment conversion until after the first interactive frame.
  const loadEnvironment=()=>new HDRLoader().load('/models/venice_sunset_1k.hdr',hdr=>{hdr.mapping=T.EquirectangularReflectionMapping;scene.environment=hdr;scene.environmentIntensity=.45;},undefined,()=>{});
- if((navigator.deviceMemory||8)>4){if('requestIdleCallback' in window)requestIdleCallback(loadEnvironment,{timeout:3500});else setTimeout(loadEnvironment,1300);}
+ if(quality==='high'&&(navigator.deviceMemory||8)>4){if('requestIdleCallback' in window)requestIdleCallback(loadEnvironment,{timeout:3500});else setTimeout(loadEnvironment,1300);}
  const textureLoader=new T.TextureLoader();function pbr(name,colour=0xffffff){const maps={};for(const [key,suffix] of [['map','Diffuse'],['normalMap','nor_gl'],['roughnessMap','Rough']]){const tex=textureLoader.load('/textures/'+name+'_'+suffix+'.jpg');tex.wrapS=tex.wrapT=T.RepeatWrapping;tex.anisotropy=4;if(key==='map')tex.colorSpace=T.SRGBColorSpace;maps[key]=tex;}return new T.MeshStandardMaterial({color:colour,...maps,roughness:.87,normalScale:new T.Vector2(.6,.6)});}
  const asphalt=pbr('asphalt_02',0xababab),brick=pbr('brick_wall_001',0xcac0b2),concrete=pbr('concrete',0xd2d0c8),pavement=pbr('pavement_01',0xc9c9c1),grass=pbr('grass_ground');
  const cream=new T.MeshStandardMaterial({color:0xbdb5a8,roughness:.9,map:concrete.map,normalMap:concrete.normalMap}),dark=new T.MeshStandardMaterial({color:0x252e32,roughness:.8}),metal=new T.MeshStandardMaterial({color:0x67757a,metalness:.8,roughness:.36});
  const glass=new T.MeshStandardMaterial({color:0x273d46,metalness:.6,roughness:.18}),frame=new T.MeshStandardMaterial({color:0xd5d5cc,metalness:.25,roughness:.6});
- const decorations=[],obstacles=[],staticMeshes=[],staticChunks=[],geometryCache=new Map(),unit=new T.BoxGeometry(1,1,1);let serial=0;
- function box(x,y,z,w,h,d,mat,parent=city,collide=false){const geoKey=mat.map?[w,h,d].join(','):'unit';let geo=geometryCache.get(geoKey);if(!geo){geo=mat.map?unit.clone():unit;geometryCache.set(geoKey,geo);if(mat.map){const uv=geo.attributes.uv,n=geo.attributes.normal;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*(Math.abs(n.getX(i))>.5?d:w)/3,uv.getY(i)*(Math.abs(n.getY(i))>.5?d:h)/3);}}const m=new T.Mesh(geo,mat);m.position.set(x,y+h/2,z);m.scale.set(w,h,d);m.castShadow=w>4&&d>4&&h>.3;m.receiveShadow=true;parent.add(m);staticMeshes.push(m);if(collide)obstacles.push({x,z,w:w/2,d:d/2,h:y+h});return m;}
- function cyl(x,y,z,r,h,mat,parent=city){const m=new T.Mesh(new T.CylinderGeometry(r,r,h,12),mat);m.position.set(x,y+h/2,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
- const signCache=new Map();
+ const decorations=[],obstacles=[],staticMeshes=[],staticChunks=[],geometryCache=new Map(),unit=new T.BoxGeometry(1,1,1);let serial=0,creatingDetail=false;
+ function box(x,y,z,w,h,d,mat,parent=city,collide=false){const geoKey=mat.map?[w,h,d].join(','):'unit';let geo=geometryCache.get(geoKey);if(!geo){geo=mat.map?unit.clone():unit;geometryCache.set(geoKey,geo);if(mat.map){const uv=geo.attributes.uv,n=geo.attributes.normal;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*(Math.abs(n.getX(i))>.5?d:w)/3,uv.getY(i)*(Math.abs(n.getY(i))>.5?d:h)/3);}}const m=new T.Mesh(geo,mat);m.position.set(x,y+h/2,z);m.scale.set(w,h,d);m.castShadow=w>4&&d>4&&h>.3;m.receiveShadow=true;parent.add(m);m.userData.lodDetail=creatingDetail;staticMeshes.push(m);if(collide)obstacles.push({x,z,w:w/2,d:d/2,h:y+h});return m;}
+ function cyl(x,y,z,r,h,mat,parent=city){const m=new T.Mesh(new T.CylinderGeometry(r,r,h,12),mat);m.position.set(x,y+h/2,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);m.userData.lodDetail=creatingDetail;staticMeshes.push(m);return m;}
+ // Shared canvas atlas; signs keep their own UV rectangle and one material.
+ const shadowMaterial=new T.MeshBasicMaterial({color:0x142333,transparent:true,opacity:.24,depthWrite:false});
+ const signCache=new Map(),atlas=document.createElement('canvas');atlas.width=2048;atlas.height=2048;
+ const atlasCtx=atlas.getContext('2d'),atlasTexture=new T.CanvasTexture(atlas);atlasTexture.colorSpace=T.SRGBColorSpace;
+ const signMaterial=new T.MeshBasicMaterial({map:atlasTexture,side:T.DoubleSide});
  function sign(text,x,y,z,width=5,parent=city,colour='#d6e4e5'){
-  // Reuse a tiny atlas of labelled materials instead of allocating a 1024x160
-  // GPU texture + canvas for every building (dozens of duplicate signs).
-  const key=text+'|'+colour;let material=signCache.get(key);
-  if(!material){const c=document.createElement('canvas');c.width=512;c.height=96;const ctx=c.getContext('2d');ctx.fillStyle='#172529';ctx.fillRect(0,0,512,96);ctx.fillStyle=colour;ctx.font='bold 33px Arial';ctx.textAlign='center';ctx.fillText(text,256,63,495);const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;material=new T.MeshBasicMaterial({map:tex,side:T.DoubleSide});signCache.set(key,material);}
-  const m=new T.Mesh(new T.PlaneGeometry(width,width*.156),material);m.position.set(x,y,z);parent.add(m);return m;
+  const key=text+'|'+colour;let slot=signCache.get(key);
+  if(slot===undefined){slot=signCache.size;signCache.set(key,slot);const ax=(slot%4)*512,ay=Math.floor(slot/4)*96;atlasCtx.fillStyle='#172529';atlasCtx.fillRect(ax,ay,512,96);atlasCtx.fillStyle=colour;atlasCtx.font='bold 33px Arial';atlasCtx.textAlign='center';atlasCtx.fillText(text,ax+256,ay+63,495);atlasTexture.needsUpdate=true;}
+  const geometry=new T.PlaneGeometry(width,width*.156),uv=geometry.attributes.uv,ax=(slot%4)*512,ay=Math.floor(slot/4)*96;
+  for(let i=0;i<uv.count;i++)uv.setXY(i,(ax+1+uv.getX(i)*510)/2048,1-(ay+1+(1-uv.getY(i))*94)/2048);
+  const m=new T.Mesh(geometry,signMaterial);m.position.set(x,y,z);parent.add(m);m.userData.lodDetail=true;staticMeshes.push(m);return m;
  }
  box(0,-.24,0,690,.24,690,concrete);
  for(const r of roads){box(r,.01,0,14,.04,660,asphalt);box(0,.014,r,660,.04,14,asphalt);for(const side of [-1,1]){box(r+side*9,.03,0,3.7,.18,660,pavement);box(0,.03,r+side*9,660,.18,3.7,pavement);box(r+side*7,.02,0,.23,.32,660,cream);box(0,.02,r+side*7,660,.32,.23,cream);}for(let z=-320;z<=320;z+=10){box(r,.06,z,.15,.008,4,frame);box(z,.066,r,4,.008,.15,frame);}}
- for(const d of districts){const len=Math.hypot(...d.center),road=box(d.center[0]/2,.06,d.center[1]/2,10,.025,len,asphalt);road.rotation.y=Math.atan2(d.center[0],d.center[1]);}
+ for(const c of serviceConnections){const dx=c.to[0]-c.from[0],dz=c.to[1]-c.from[1],len=Math.hypot(dx,dz),road=box((c.to[0]+c.from[0])/2,.06,(c.to[1]+c.from[1])/2,10,.025,len,asphalt);road.rotation.y=Math.atan2(dx,dz);}
  function groundShadow(x,z,w,d,h){
   const points=[];for(const xx of [-w/2,w/2])for(const zz of [-d/2,d/2]){points.push([x+xx,z+zz]);points.push([x+xx+h*.58,z+zz-h*.38]);}
-  points.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);const low=[],high=[];for(const p of points){while(low.length>1&&cross(low.at(-2),low.at(-1),p)<=0)low.pop();low.push(p);}for(const p of [...points].reverse()){while(high.length>1&&cross(high.at(-2),high.at(-1),p)<=0)high.pop();high.push(p);}const hull=[...low.slice(0,-1),...high.slice(0,-1)],shape=new T.Shape(hull.map(p=>new T.Vector2(p[0],-p[1]))),m=new T.Mesh(new T.ShapeGeometry(shape),new T.MeshBasicMaterial({color:0x142333,transparent:true,opacity:.24,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.y=.215;city.add(m);
+  points.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);const low=[],high=[];for(const p of points){while(low.length>1&&cross(low.at(-2),low.at(-1),p)<=0)low.pop();low.push(p);}for(const p of [...points].reverse()){while(high.length>1&&cross(high.at(-2),high.at(-1),p)<=0)high.pop();high.push(p);}const hull=[...low.slice(0,-1),...high.slice(0,-1)],shape=new T.Shape(hull.map(p=>new T.Vector2(p[0],-p[1]))),m=new T.Mesh(new T.ShapeGeometry(shape),shadowMaterial);m.rotation.x=-Math.PI/2;m.position.y=.215;city.add(m);staticMeshes.push(m);
  }
  function building(x,z,w,d,floors,type=0,name){const h=floors*3.3+1,material=type===0?brick:type===1?cream:concrete;groundShadow(x,z,w,d,h);
-  box(x,0,z,w,h,d,material,city,true);box(x,.02,z,w+.4,.22,d+.4,pavement);box(x,h,z,w+.6,.22,d+.6,dark);box(x,h+.22,z,w,.5,d,material);box(x,h+.73,z,w+.25,.08,d+.25,frame);
+  box(x,0,z,w,h,d,material,city,true);creatingDetail=true;box(x,.02,z,w+.4,.22,d+.4,pavement);box(x,h,z,w+.6,.22,d+.6,dark);box(x,h+.22,z,w,.5,d,material);box(x,h+.73,z,w+.25,.08,d+.25,frame);
   for(let f=0;f<floors;f++){const yy=1.35+f*3.3;for(let q=-w/2+1.7;q<w/2;q+=3.4){for(const side of [-1,1]){box(x+q,yy,z+side*(d/2+.025),1.45,1.65,.08,dark);box(x+q,yy+.08,z+side*(d/2+.08),1.2,1.45,.035,glass);box(x+q,yy,z+side*(d/2+.12),.06,1.65,.055,frame);box(x+q,yy+.76,z+side*(d/2+.12),1.45,.06,.055,frame);box(x+q,yy-.06,z+side*(d/2+.2),1.6,.12,.4,cream);}if(type===1&&f>0&&f%2){box(x+q,yy-.2,z+d/2+.8,2.5,.18,1.8,concrete);box(x+q,yy,z+d/2+1.6,2.5,.85,.08,glass);for(const k of [-1,0,1])box(x+q+k,yy,z+d/2+1.63,.045,.9,.04,metal);}}
    for(let q=-d/2+1.7;q<d/2;q+=3.4)for(const side of [-1,1]){box(x+side*(w/2+.03),yy,z+q,.08,1.6,1.4,dark);box(x+side*(w/2+.08),yy+.06,z+q,.035,1.45,1.25,glass);box(x+side*(w/2+.12),yy,z+q,.055,1.6,.05,frame);}box(x,1+f*3.3,z+d/2+.12,w,.12,.28,cream);}
   for(let q=-w/2+2;q<w/2;q+=4){box(x+q,.25,z+d/2+.15,2.8,2.3,.12,glass);box(x+q,2.7,z+d/2+.9,3.6,.2,1.8,type===0?dark:metal);box(x+q,1.3,z+d/2+.25,.08,1.1,.15,frame);}
   cyl(x-w/2+2,h+.25,z-d/2+2,1,1.8,metal);box(x+w/2-2,h+.25,z-d/2+2,2,.9,1.5,metal);
   if(name)sign(name,x,3.6,z+d/2+.18,Math.min(w-1,12));else if(Math.abs(x)<150&&Math.abs(z)<150){const names=['SAANJH STORES','SURYANAGAR RESIDENCES','WARD HEALTH','STATIONERY & REPAIRS','URBAN CO-OP'];sign(names[(serial++)%names.length],x,3.6,z+d/2+.18,w-1);}
+  creatingDetail=false;
  }
- function reserve(x,z){return Math.hypot(x,z)<35||districts.some(d=>Math.hypot(x-d.center[0],z-d.center[1])<38)||Math.hypot(x+52,z-28)<29;}
- for(let ix=-4;ix<5;ix++)for(let iz=-4;iz<5;iz++){const cx=ix*60+30,cz=iz*60+30;for(let k=0;k<1;k++){const x=cx+(k?12:-12),z=cz+(k?8:-8);if(reserve(x,z))continue;const seed=Math.abs(ix*19+iz*13+k*7);building(x,z,15+(seed%3)*2,17+(seed%2)*3,3+seed%4,seed%3);}}
+ for(const b of buildingLots)building(b.x,b.z,b.w,b.d,b.floors,b.type);
  building(-59,28,16,18,2,1,'DADI COMMUNITY CLINIC');sign('EMERGENCY / CLINIC',-50.85,3.2,28,6).rotation.y=Math.PI/2;
  box(-50.65,2.6,30,2,.2,7,metal);box(-50.65,0,27,2.4,2.5,.14,glass);box(-50.65,0,33,2.4,2.5,.14,glass);const red=new T.MeshBasicMaterial({color:0xd85d45});box(-50.8,4,28,.12,2,.5,red);box(-50.8,4.75,28,.12,.5,2,red);
  box(-112,0,-83,22,8.7,24,cream,city,true);box(-112,8.7,-83,22,.3,24,concrete);sign('SURYANAGAR PUBLIC SCHOOL',-112,6.7,-70.9,16);
@@ -62,12 +69,11 @@ export function createWorld(canvas,onFPS){
  sign('SECURITY / AUTHORISED FIELD STAFF',0,2.3,13.2,7,site);
  const gates=[];districts.forEach((d,i)=>{if(!i)return;const l=Math.hypot(...d.center),g=new T.Group();g.position.set(d.center[0]/l*43,0,d.center[1]/l*43);g.rotation.y=Math.atan2(d.center[0],d.center[1]);city.add(g);const door=box(0,.4,0,11,2.4,.15,new T.MeshStandardMaterial({color:0x4b5760,metalness:.6,roughness:.35}),g);for(const x of [-6,6]){box(x,0,0,.3,3.6,.4,metal,g);box(x,2.5,0,.36,.8,.45,new T.MeshBasicMaterial({color:0xdd6e46}),g);}gates.push({root:g,door,level:i});});
  
- const loader=new GLTFLoader(),treePositions=[];
- for(let i=0;i<28;i++){const x=100+(i%6)*6,z=-99-Math.floor(i/6)*8;treePositions.push([x,z]);obstacles.push({x,z,w:.35,d:.35,h:8});}
- for(let i=0;i<32;i++)treePositions.push([-70+(i%8)*20,49+Math.floor(i/8)*55]);
+ const loader=new GLTFLoader(),treePositions=treeSites;
+ for(const [x,z] of treePositions)obstacles.push({x,z,w:.35,d:.35,h:8});
  // Distance-based chunks keep instanced scans out of the GPU frustum when far away.
- function chunks(places){
-  const map=new Map();for(const p of places){const k=Math.floor(p.x/60)+','+Math.floor(p.z/60);if(!map.has(k))map.set(k,[]);map.get(k).push(p);}return map.values();
+ function chunks(places,size=60){
+  const map=new Map();for(const p of places){const k=Math.floor(p.x/size)+','+Math.floor(p.z/size);if(!map.has(k))map.set(k,[]);map.get(k).push(p);}return map.values();
  }
  function fixAssetMaterials(scene,foliage=false){
   scene.traverse(n=>{if(!n.isMesh)return;for(const mat of (Array.isArray(n.material)?n.material:[n.material])){if(!mat)continue;if(mat.map)mat.map.colorSpace=T.SRGBColorSpace;if(foliage){mat.side=T.DoubleSide;mat.alphaTest=mat.transparent?0.15:mat.alphaTest;}mat.needsUpdate=true;}});
@@ -81,13 +87,15 @@ export function createWorld(canvas,onFPS){
    source.traverse(node=>{if(node.isMesh&&!node.isSkinnedMesh)primitives.push(node);});
    if(!primitives.length){onFail();return;}
    const origin=new T.Vector3(),scale=new T.Vector3(),orientation=new T.Quaternion(),up=new T.Vector3(0,1,0),placement=new T.Matrix4(),combined=new T.Matrix4();
-   for(const batch of chunks(places)){const x0=batch.reduce((a,p)=>a+p.x,0)/batch.length,z0=batch.reduce((a,p)=>a+p.z,0)/batch.length;
+   for(const batch of chunks(places,foliage?20:60)){const x0=batch.reduce((a,p)=>a+p.x,0)/batch.length,z0=batch.reduce((a,p)=>a+p.z,0)/batch.length;
     const group=new T.Group();group.position.set(x0,0,z0);
     for(const primitive of primitives){
      const instances=new T.InstancedMesh(primitive.geometry,primitive.material,batch.length);
      for(let i=0;i<batch.length;i++){const p=batch[i],factor=base*(p.scale??1);origin.set(p.x-x0,-bounds.min.y*factor,p.z-z0);scale.setScalar(factor);orientation.setFromAxisAngle(up,p.yaw||0);placement.compose(origin,orientation,scale);combined.multiplyMatrices(placement,primitive.matrixWorld);instances.setMatrixAt(i,combined);}
      instances.instanceMatrix.needsUpdate=true;instances.computeBoundingSphere();instances.castShadow=false;instances.receiveShadow=true;group.add(instances);
     }
+    group.userData.foliage=foliage;group.userData.foliageDetail=foliage;group.userData.radius=Math.max(...batch.map(p=>Math.hypot(p.x-x0,p.z-z0)))+metres;
+    if(foliage)for(const proxy of decorations)if(proxy.userData.foliageProxy&&proxy.position.x===x0&&proxy.position.z===z0)proxy.userData.detailReady=true;
     city.add(group);decorations.push(group);
    }
   },undefined,onFail);
@@ -95,10 +103,10 @@ export function createWorld(canvas,onFPS){
  // Lightweight physical foliage replaces most expensive scanned copies.
  const stemsGeo=new T.CylinderGeometry(.22,.3,4.2,7),canopyGeo=new T.IcosahedronGeometry(1,1);
  const stemMat=new T.MeshStandardMaterial({color:0x755b42,roughness:1}),canopyMat=new T.MeshStandardMaterial({color:0x478958,roughness:.9,side:T.DoubleSide});
- function simpleTrees(places){
+ function simpleTrees(places,proxy=false){
   const matrix=new T.Matrix4(),pos=new T.Vector3(),quat=new T.Quaternion(),scale=new T.Vector3();
-  for(const batch of chunks(places)){const x0=batch.reduce((a,p)=>a+p.x,0)/batch.length,z0=batch.reduce((a,p)=>a+p.z,0)/batch.length;
-   const group=new T.Group();group.position.set(x0,0,z0);
+  for(const batch of chunks(places,proxy?20:60)){const x0=batch.reduce((a,p)=>a+p.x,0)/batch.length,z0=batch.reduce((a,p)=>a+p.z,0)/batch.length;
+   const group=new T.Group();group.position.set(x0,0,z0);group.userData.foliage=true;group.userData.foliageProxy=proxy;group.userData.radius=Math.max(...batch.map(p=>Math.hypot(p.x-x0,p.z-z0)))+8;
    const stem=new T.InstancedMesh(stemsGeo,stemMat,batch.length),crown=new T.InstancedMesh(canopyGeo,canopyMat,batch.length);
    batch.forEach((p,i)=>{const variation=p.scale??1;pos.set(p.x-x0,2.1*variation,p.z-z0);scale.set(variation,variation,variation);matrix.compose(pos,quat,scale);stem.setMatrixAt(i,matrix);
     pos.y=6.1*variation;scale.set(2.1*variation,2.4*variation,1.95*variation);matrix.compose(pos,quat,scale);crown.setMatrixAt(i,matrix);
@@ -109,7 +117,8 @@ export function createWorld(canvas,onFPS){
  const trees=treePositions.map(([x,z],i)=>({x,z,yaw:x*.2,scale:.85+(Math.abs(x+z)%7)/25}));
  const scanned=trees.filter((p,i)=>i%3===0),simplified=trees.filter((p,i)=>i%3!==0);
  simpleTrees(simplified);
- scanInstances('/models/island_tree_01.glb',scanned,8,'y',true,()=>simpleTrees(scanned));
+ simpleTrees(scanned,true);
+ scanInstances('/models/island_tree_01.glb',scanned,8,'y',true,()=>{});
  const lamps=Array.from({length:56},(_,i)=>({x:i%2?10:-10,z:-250+i*9,yaw:i%2?Math.PI:0}));
  scanInstances('/models/street_lamp_01.glb',lamps,6,'y',false,()=>{});
  // Emissive lamp heads simulate the illuminated bulbs without 56 point-light passes.
@@ -122,13 +131,17 @@ export function createWorld(canvas,onFPS){
  const barriers=[[-26,7],[-42,4],[195,65],[229,73]].map(([x,z])=>({x,z}));
  scanInstances('/models/concrete_road_barrier.glb',barriers,2.7,'x',false,()=>{});
 
+ const floorA=new T.MeshStandardMaterial({color:0x263c49,metalness:.6,roughness:.28}),floorB=new T.MeshStandardMaterial({color:0x304c59,metalness:.6,roughness:.28}),consoleMat=new T.MeshBasicMaterial({color:0x2a8495});
  const labSteel=new T.MeshStandardMaterial({color:0x172a36,metalness:.72,roughness:.32}),labWall=new T.MeshStandardMaterial({color:0x435965,metalness:.45,roughness:.6}),strip=new T.MeshBasicMaterial({color:0x8cd8e7});
  box(0,-24.3,-5,36,.3,34,labSteel,lab);box(-18,-24,-5,.5,8,34,labWall,lab);box(18,-24,-5,.5,8,34,labWall,lab);box(0,-24,-22,36,8,.5,labWall,lab);box(0,-24,12,36,8,.5,labWall,lab);box(0,-16,-5,36,.3,34,labSteel,lab);
- for(let x=-16;x<=16;x+=4){box(x,-23.98,-5,.035,.012,34,metal,lab);box(x,-16.12,-5,.1,.1,34,strip,lab);for(let z=-20;z<=10;z+=4)box(x,-24,z,3.8,.022,3.8,new T.MeshStandardMaterial({color:(x+z)%8?0x263c49:0x304c59,metalness:.6,roughness:.28}),lab);}
- for(const x of [-14,14]){for(let z=-18;z<=2;z+=5){box(x,-24,z,3,1.1,1.5,labSteel,lab);const console=box(x,-22.9,z,2.6,.6,.06,new T.MeshBasicMaterial({color:0x2a8495}),lab);console.rotation.x=-.45;for(let k=0;k<3;k++)box(x-.7+k*.65,-22.65,z+.02,.35,.03,.015,strip,lab);}for(let q=0;q<3;q++)cyl(x+q*.4,-23.5,-19,.18,6,metal,lab);}
+ for(let x=-16;x<=16;x+=4){box(x,-23.98,-5,.035,.012,34,metal,lab);box(x,-16.12,-5,.1,.1,34,strip,lab);for(let z=-20;z<=10;z+=4)box(x,-24,z,3.8,.022,3.8,(x+z)%8?floorA:floorB,lab);}
+ for(const x of [-14,14]){for(let z=-18;z<=2;z+=5){box(x,-24,z,3,1.1,1.5,labSteel,lab);const console=box(x,-22.9,z,2.6,.6,.06,consoleMat,lab);console.rotation.x=-.45;for(let k=0;k<3;k++)box(x-.7+k*.65,-22.65,z+.02,.35,.03,.015,strip,lab);}for(let q=0;q<3;q++)cyl(x+q*.4,-23.5,-19,.18,6,metal,lab);}
  sign('ECO-CORE  /  SUBLEVEL 24',0,-19.5,-21.65,15,lab,'#9bdde7');sign('DR. MEERA  /  RESEARCH OPERATIONS',-8,-21,1,6,lab,'#a9c7d2');for(const x of [-12,12])for(const z of [-15,1]){const light=new T.PointLight(0x89d1e9,35,20,2);light.position.set(x,-18,z);lab.add(light);}lab.add(new T.AmbientLight(0x81a6ba,.7));
  // Instanced façade batches retain detail without thousands of draw calls.
- const bins=new Map();for(const m of staticMeshes){if(m.parent!==city)continue;const id=m.material.uuid+'_'+m.geometry.attributes.uv.array.slice(0,4).join(',')+'_'+Math.floor(m.position.x/60)+'_'+Math.floor(m.position.z/60);if(!bins.has(id))bins.set(id,[]);bins.get(id).push(m);}for(const list of bins.values()){if(list.length<2)continue;const batch=new T.InstancedMesh(list[0].geometry,list[0].material,list.length);list.forEach((m,i)=>{m.updateMatrix();batch.setMatrixAt(i,m.matrix);city.remove(m);});batch.castShadow=list.some(m=>m.castShadow);batch.receiveShadow=true;batch.computeBoundingSphere();city.add(batch);const bounds=batch.boundingSphere;staticChunks.push({mesh:batch,x:bounds.center.x,z:bounds.center.z,radius:bounds.radius});}
+ batchStaticMeshes(T,city,staticMeshes,{onBatch:(mesh,bounds,detail)=>staticChunks.push({mesh,x:bounds.center.x,z:bounds.center.z,radius:bounds.radius,detail})});
+ batchStaticMeshes(T,lab,staticMeshes);
+ // Static placement matrices do not need recomputing every simulation frame.
+ for(const group of decorations)group.traverse(m=>{m.updateMatrix();m.matrixAutoUpdate=false;});
  staticMeshes.length=0;
- return adventureController({scene,camera,renderer,city,lab,obstacles,water,sun,hemi,gates,decorations,staticChunks,canvas,onFPS,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches});
+ return adventureController({scene,camera,renderer,city,lab,obstacles,water,sun,hemi,sky,gates,decorations,staticChunks,canvas,onFPS,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches});
 }

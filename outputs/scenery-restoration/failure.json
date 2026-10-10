@@ -1,0 +1,1765 @@
+{
+  "message": "page.evaluate: Error: Movement stalled {\"p\":[-120.22370396180776,192.45641227026945],\"goal\":[-121,194],\"target\":[-121,194],\"drive\":true,\"heading\":2.6707201812557564,\"speed\":1.579681856735513e-48,\"heat\":4.854828000000338}\n    at tick (eval at evaluate (:311:30), <anonymous>:39:54)",
+  "snapshot": {
+    "version": 3,
+    "screen": "city",
+    "adventure": {
+      "version": 3,
+      "layoutVersion": 2,
+      "location": "city",
+      "assembled": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "stone": -1,
+      "tasks": [
+        "fuse",
+        "power",
+        "circuit",
+        "clinic",
+        "panels",
+        "panel1",
+        "panel2",
+        "panel3",
+        "stakes",
+        "housing1",
+        "housing2",
+        "grove",
+        "water1",
+        "water2",
+        "scan1",
+        "scan2",
+        "scan3",
+        "valve",
+        "cargo"
+      ],
+      "inventory": "battery",
+      "rules": {
+        "version": 1,
+        "stage": 4,
+        "decisions": [
+          {
+            "stage": "energy",
+            "id": "efficiency"
+          },
+          {
+            "stage": "solar",
+            "id": "school"
+          },
+          {
+            "stage": "land",
+            "id": "infill"
+          },
+          {
+            "stage": "river",
+            "id": "effluent"
+          }
+        ],
+        "budget": [],
+        "carbon": 44,
+        "energy": 54,
+        "ecosystem": 65,
+        "reserve": 12,
+        "workers": 1,
+        "access": 0,
+        "scores": [
+          180
+        ],
+        "evidence": [],
+        "position": [
+          0,
+          15
+        ]
+      },
+      "position": [
+        -120.22370396180776,
+        0,
+        192.45641227026945
+      ],
+      "heat": 4.902336000000348,
+      "night": null,
+      "ending": null
+    },
+    "nearest": {
+      "id": "depotDelivery",
+      "key": "act.deliverDepot",
+      "x": -121,
+      "z": 194,
+      "y": 0,
+      "kind": "deliver",
+      "duration": 1.5,
+      "distance": 1.7278016721509664
+    },
+    "driving": true,
+    "position": [
+      -120.22370396180776,
+      0,
+      192.45641227026945
+    ],
+    "modelLoaded": true,
+    "nativeRig": true,
+    "securityGuards": 6,
+    "traffic": [
+      {
+        "x": -3,
+        "z": 53.00000000152977,
+        "yaw": 0,
+        "direction": -1
+      },
+      {
+        "x": 3,
+        "z": 11.99999999847023,
+        "yaw": 3.141592653589793,
+        "direction": 1
+      },
+      {
+        "x": -3,
+        "z": 183.00000000152977,
+        "yaw": 0,
+        "direction": -1
+      },
+      {
+        "x": 3,
+        "z": 141.99999999847023,
+        "yaw": 3.141592653589793,
+        "direction": 1
+      },
+      {
+        "x": -3,
+        "z": -286.99999999847023,
+        "yaw": 0,
+        "direction": -1
+      },
+      {
+        "x": 3,
+        "z": 271.99999999847023,
+        "yaw": 3.141592653589793,
+        "direction": 1
+      },
+      {
+        "x": -3,
+        "z": -156.99999999847023,
+        "yaw": 0,
+        "direction": -1
+      },
+      {
+        "x": 3,
+        "z": -198.00000000152977,
+        "yaw": 3.141592653589793,
+        "direction": 1
+      }
+    ],
+    "renderStats": {
+      "calls": 116,
+      "triangles": 33582,
+      "visibleChunks": 191,
+      "totalChunks": 777,
+      "renderTier": "balanced",
+      "pixelRatio": 1,
+      "frameMS": 5.700000047683716,
+      "targetFPS": 90
+    },
+    "cinematic": null,
+    "locale": "en",
+    "events": [
+      {
+        "name": "menu.view",
+        "screen": "home",
+        "locale": "en",
+        "at": 221
+      },
+      {
+        "name": "app.ready",
+        "locale": "en",
+        "at": 221
+      },
+      {
+        "name": "menu.view",
+        "screen": "intro",
+        "locale": "en",
+        "at": 2708
+      },
+      {
+        "name": "adventure.start",
+        "locale": "en",
+        "at": 2711
+      },
+      {
+        "name": "models.ready",
+        "locale": "en",
+        "at": 4372
+      },
+      {
+        "name": "menu.view",
+        "screen": "city",
+        "locale": "en",
+        "at": 4487
+      },
+      {
+        "name": "task.complete",
+        "id": "fuse",
+        "phase": 0,
+        "locale": "en",
+        "at": 14263
+      },
+      {
+        "name": "task.complete",
+        "id": "power",
+        "phase": 0,
+        "locale": "en",
+        "at": 21082
+      },
+      {
+        "name": "task.complete",
+        "id": "circuit",
+        "phase": 0,
+        "locale": "en",
+        "at": 28840
+      },
+      {
+        "name": "task.complete",
+        "id": "clinic",
+        "phase": 0,
+        "locale": "en",
+        "at": 31372
+      },
+      {
+        "name": "stone.collect",
+        "id": "gem",
+        "phase": 0,
+        "locale": "en",
+        "at": 33572
+      },
+      {
+        "name": "elevator.start",
+        "locale": "en",
+        "at": 47509
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "doorsClose",
+        "locale": "en",
+        "at": 47521
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "descent",
+        "locale": "en",
+        "at": 48816
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "doorsOpen",
+        "locale": "en",
+        "at": 52628
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "complete",
+        "locale": "en",
+        "at": 54432
+      },
+      {
+        "name": "elevator.complete",
+        "locale": "en",
+        "at": 54457
+      },
+      {
+        "name": "assembly.start",
+        "index": 0,
+        "locale": "en",
+        "at": 56838
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "handover",
+        "locale": "en",
+        "at": 56849
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "researcherCarry",
+        "locale": "en",
+        "at": 58640
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "socketFit",
+        "locale": "en",
+        "at": 62640
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "activation",
+        "locale": "en",
+        "at": 64845
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "researcherReturn",
+        "locale": "en",
+        "at": 68842
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "complete",
+        "locale": "en",
+        "at": 72842
+      },
+      {
+        "name": "assembly.complete",
+        "index": 0,
+        "locale": "en",
+        "at": 72846
+      },
+      {
+        "name": "elevator.start",
+        "locale": "en",
+        "at": 74885
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "doorsClose",
+        "locale": "en",
+        "at": 74892
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "ascent",
+        "locale": "en",
+        "at": 76189
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "surfaceOpen",
+        "locale": "en",
+        "at": 79587
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "complete",
+        "locale": "en",
+        "at": 81391
+      },
+      {
+        "name": "elevator.complete",
+        "locale": "en",
+        "at": 81398
+      },
+      {
+        "name": "task.complete",
+        "id": "panels",
+        "phase": 1,
+        "locale": "en",
+        "at": 115766
+      },
+      {
+        "name": "task.complete",
+        "id": "panel1",
+        "phase": 1,
+        "locale": "en",
+        "at": 120194
+      },
+      {
+        "name": "task.complete",
+        "id": "panel2",
+        "phase": 1,
+        "locale": "en",
+        "at": 124297
+      },
+      {
+        "name": "task.complete",
+        "id": "panel3",
+        "phase": 1,
+        "locale": "en",
+        "at": 130110
+      },
+      {
+        "name": "stone.collect",
+        "id": "gem",
+        "phase": 1,
+        "locale": "en",
+        "at": 133464
+      },
+      {
+        "name": "elevator.start",
+        "locale": "en",
+        "at": 187463
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "doorsClose",
+        "locale": "en",
+        "at": 187469
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "descent",
+        "locale": "en",
+        "at": 188767
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "doorsOpen",
+        "locale": "en",
+        "at": 192163
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "complete",
+        "locale": "en",
+        "at": 193968
+      },
+      {
+        "name": "elevator.complete",
+        "locale": "en",
+        "at": 193970
+      },
+      {
+        "name": "assembly.start",
+        "index": 1,
+        "locale": "en",
+        "at": 196253
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "handover",
+        "locale": "en",
+        "at": 196260
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "researcherCarry",
+        "locale": "en",
+        "at": 198058
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "socketFit",
+        "locale": "en",
+        "at": 202058
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "activation",
+        "locale": "en",
+        "at": 204262
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "researcherReturn",
+        "locale": "en",
+        "at": 208259
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "complete",
+        "locale": "en",
+        "at": 212259
+      },
+      {
+        "name": "assembly.complete",
+        "index": 1,
+        "locale": "en",
+        "at": 212262
+      },
+      {
+        "name": "elevator.start",
+        "locale": "en",
+        "at": 214281
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "doorsClose",
+        "locale": "en",
+        "at": 214287
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "ascent",
+        "locale": "en",
+        "at": 215585
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "surfaceOpen",
+        "locale": "en",
+        "at": 218982
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "complete",
+        "locale": "en",
+        "at": 220786
+      },
+      {
+        "name": "elevator.complete",
+        "locale": "en",
+        "at": 220790
+      },
+      {
+        "name": "task.complete",
+        "id": "stakes",
+        "phase": 2,
+        "locale": "en",
+        "at": 249751
+      },
+      {
+        "name": "ecology.animation.start",
+        "id": "housing1",
+        "kind": "survey",
+        "locale": "en",
+        "at": 255167
+      },
+      {
+        "name": "ecology.animation.complete",
+        "id": "housing1",
+        "locale": "en",
+        "at": 256274
+      },
+      {
+        "name": "task.complete",
+        "id": "housing1",
+        "phase": 2,
+        "locale": "en",
+        "at": 256274
+      },
+      {
+        "name": "ecology.animation.start",
+        "id": "housing2",
+        "kind": "survey",
+        "locale": "en",
+        "at": 261924
+      },
+      {
+        "name": "ecology.animation.complete",
+        "id": "housing2",
+        "locale": "en",
+        "at": 263030
+      },
+      {
+        "name": "task.complete",
+        "id": "housing2",
+        "phase": 2,
+        "locale": "en",
+        "at": 263030
+      },
+      {
+        "name": "task.complete",
+        "id": "grove",
+        "phase": 2,
+        "locale": "en",
+        "at": 270202
+      },
+      {
+        "name": "ecology.animation.start",
+        "id": "water1",
+        "kind": "planting",
+        "locale": "en",
+        "at": 275715
+      },
+      {
+        "name": "ecology.animation.complete",
+        "id": "water1",
+        "locale": "en",
+        "at": 278226
+      },
+      {
+        "name": "task.complete",
+        "id": "water1",
+        "phase": 2,
+        "locale": "en",
+        "at": 278226
+      },
+      {
+        "name": "ecology.animation.start",
+        "id": "water2",
+        "kind": "planting",
+        "locale": "en",
+        "at": 284145
+      },
+      {
+        "name": "ecology.animation.complete",
+        "id": "water2",
+        "locale": "en",
+        "at": 286647
+      },
+      {
+        "name": "task.complete",
+        "id": "water2",
+        "phase": 2,
+        "locale": "en",
+        "at": 286647
+      },
+      {
+        "name": "stone.collect",
+        "id": "gem",
+        "phase": 2,
+        "locale": "en",
+        "at": 296118
+      },
+      {
+        "name": "elevator.start",
+        "locale": "en",
+        "at": 326576
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "doorsClose",
+        "locale": "en",
+        "at": 326582
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "descent",
+        "locale": "en",
+        "at": 327880
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "doorsOpen",
+        "locale": "en",
+        "at": 331276
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "complete",
+        "locale": "en",
+        "at": 333082
+      },
+      {
+        "name": "elevator.complete",
+        "locale": "en",
+        "at": 333086
+      },
+      {
+        "name": "assembly.start",
+        "index": 2,
+        "locale": "en",
+        "at": 335424
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "handover",
+        "locale": "en",
+        "at": 335434
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "researcherCarry",
+        "locale": "en",
+        "at": 337228
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "socketFit",
+        "locale": "en",
+        "at": 341227
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "activation",
+        "locale": "en",
+        "at": 343430
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "researcherReturn",
+        "locale": "en",
+        "at": 347428
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "complete",
+        "locale": "en",
+        "at": 351428
+      },
+      {
+        "name": "assembly.complete",
+        "index": 2,
+        "locale": "en",
+        "at": 351434
+      },
+      {
+        "name": "elevator.start",
+        "locale": "en",
+        "at": 353423
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "doorsClose",
+        "locale": "en",
+        "at": 353430
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "ascent",
+        "locale": "en",
+        "at": 354719
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "surfaceOpen",
+        "locale": "en",
+        "at": 358118
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "complete",
+        "locale": "en",
+        "at": 359920
+      },
+      {
+        "name": "elevator.complete",
+        "locale": "en",
+        "at": 359926
+      },
+      {
+        "name": "task.complete",
+        "id": "scan1",
+        "phase": 3,
+        "locale": "en",
+        "at": 396028
+      },
+      {
+        "name": "task.complete",
+        "id": "scan2",
+        "phase": 3,
+        "locale": "en",
+        "at": 407978
+      },
+      {
+        "name": "task.complete",
+        "id": "scan3",
+        "phase": 3,
+        "locale": "en",
+        "at": 416765
+      },
+      {
+        "name": "task.complete",
+        "id": "valve",
+        "phase": 3,
+        "locale": "en",
+        "at": 427068
+      },
+      {
+        "name": "stone.collect",
+        "id": "gem",
+        "phase": 3,
+        "locale": "en",
+        "at": 431100
+      },
+      {
+        "name": "elevator.start",
+        "locale": "en",
+        "at": 488686
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "doorsClose",
+        "locale": "en",
+        "at": 488697
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "descent",
+        "locale": "en",
+        "at": 489992
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "doorsOpen",
+        "locale": "en",
+        "at": 493382
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "complete",
+        "locale": "en",
+        "at": 495186
+      },
+      {
+        "name": "elevator.complete",
+        "locale": "en",
+        "at": 495190
+      },
+      {
+        "name": "assembly.start",
+        "index": 3,
+        "locale": "en",
+        "at": 497560
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "handover",
+        "locale": "en",
+        "at": 497569
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "researcherCarry",
+        "locale": "en",
+        "at": 499360
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "socketFit",
+        "locale": "en",
+        "at": 503360
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "activation",
+        "locale": "en",
+        "at": 505565
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "researcherReturn",
+        "locale": "en",
+        "at": 509561
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "complete",
+        "locale": "en",
+        "at": 513561
+      },
+      {
+        "name": "assembly.complete",
+        "index": 3,
+        "locale": "en",
+        "at": 513566
+      },
+      {
+        "name": "elevator.start",
+        "locale": "en",
+        "at": 515570
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "doorsClose",
+        "locale": "en",
+        "at": 515577
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "ascent",
+        "locale": "en",
+        "at": 516873
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "surfaceOpen",
+        "locale": "en",
+        "at": 520270
+      },
+      {
+        "name": "cinematic.stage",
+        "id": "complete",
+        "locale": "en",
+        "at": 522076
+      },
+      {
+        "name": "elevator.complete",
+        "locale": "en",
+        "at": 522087
+      },
+      {
+        "name": "task.complete",
+        "id": "cargo",
+        "phase": 4,
+        "locale": "en",
+        "at": 527444
+      },
+      {
+        "name": "vehicle.toggle",
+        "locale": "en",
+        "at": 527782
+      }
+    ]
+  },
+  "journey": [
+    {
+      "id": "fuse",
+      "location": "city",
+      "position": [
+        -13.828004943491347,
+        0,
+        24.086260554792954
+      ],
+      "assembled": [],
+      "heat": 5,
+      "render": {
+        "calls": 182,
+        "triangles": 91116,
+        "visibleChunks": 203,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 5.699999928474426,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "power",
+      "location": "city",
+      "position": [
+        -33.909138774902424,
+        0,
+        8.072457815229116
+      ],
+      "assembled": [],
+      "heat": 10,
+      "render": {
+        "calls": 155,
+        "triangles": 60724,
+        "visibleChunks": 208,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "circuit",
+      "location": "city",
+      "position": [
+        -48.83724781841554,
+        0,
+        28.774300280482855
+      ],
+      "assembled": [],
+      "heat": 0,
+      "render": {
+        "calls": 174,
+        "triangles": 76676,
+        "visibleChunks": 217,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 6.300000071525574,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "clinic",
+      "location": "city",
+      "position": [
+        -47.0811928824869,
+        0,
+        33.769062388325686
+      ],
+      "assembled": [],
+      "heat": 0,
+      "render": {
+        "calls": 228,
+        "triangles": 195744,
+        "visibleChunks": 217,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 7.299999952316284,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "gem",
+      "location": "city",
+      "position": [
+        -46.059097218919675,
+        0,
+        29.260673540663753
+      ],
+      "assembled": [],
+      "heat": 0,
+      "render": {
+        "calls": 253,
+        "triangles": 164644,
+        "visibleChunks": 217,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 7,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "lab",
+      "position": [
+        24,
+        -24,
+        31
+      ],
+      "assembled": [],
+      "heat": 0,
+      "render": {
+        "calls": 76,
+        "triangles": 94802,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.5,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "assemble",
+      "location": "lab",
+      "position": [
+        22.04667062289147,
+        -24,
+        27.093341245782952
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 70,
+        "triangles": 83198,
+        "visibleChunks": 219,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.899999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "city",
+      "position": [
+        24,
+        0,
+        31
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 255,
+        "triangles": 158784,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 5,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "ladder",
+      "location": "city",
+      "position": [
+        -103,
+        9,
+        -73
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 30,
+      "render": {
+        "calls": 124,
+        "triangles": 40828,
+        "visibleChunks": 198,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 1.7000000476837158,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "panels",
+      "location": "city",
+      "position": [
+        -107.82946647299583,
+        9,
+        -73
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 31,
+      "render": {
+        "calls": 125,
+        "triangles": 41646,
+        "visibleChunks": 200,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4.199999928474426,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "panel1",
+      "location": "city",
+      "position": [
+        -118.70762312147686,
+        9,
+        -74.94765211709607
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 33,
+      "render": {
+        "calls": 127,
+        "triangles": 31604,
+        "visibleChunks": 201,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "panel2",
+      "location": "city",
+      "position": [
+        -116.03462372629109,
+        9,
+        -83.88424311607449
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 35,
+      "render": {
+        "calls": 176,
+        "triangles": 86032,
+        "visibleChunks": 197,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.299999952316284,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "panel3",
+      "location": "city",
+      "position": [
+        -106.09175402061923,
+        9,
+        -91.9257916046702
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 36,
+      "render": {
+        "calls": 204,
+        "triangles": 122808,
+        "visibleChunks": 208,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.399999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "gem",
+      "location": "city",
+      "position": [
+        -107.96266393294273,
+        9,
+        -84.15507324004858
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 37,
+      "render": {
+        "calls": 201,
+        "triangles": 98034,
+        "visibleChunks": 208,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.200000047683716,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "ladder",
+      "location": "city",
+      "position": [
+        -99,
+        0,
+        -69.8
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 38,
+      "render": {
+        "calls": 292,
+        "triangles": 155242,
+        "visibleChunks": 200,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.3000000715255737,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "lab",
+      "position": [
+        24,
+        -24,
+        31
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 18,
+      "render": {
+        "calls": 77,
+        "triangles": 94822,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 1.5,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "assemble",
+      "location": "lab",
+      "position": [
+        22.06977952539692,
+        -24,
+        27.13955905079381
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 6,
+      "render": {
+        "calls": 73,
+        "triangles": 83420,
+        "visibleChunks": 219,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 1.5,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "city",
+      "position": [
+        24,
+        0,
+        31
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 254,
+        "triangles": 159226,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.600000023841858,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "stakes",
+      "location": "city",
+      "position": [
+        98.88812927922176,
+        0,
+        -85.88666564248349
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 10,
+      "render": {
+        "calls": 144,
+        "triangles": 569490,
+        "visibleChunks": 198,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.1999999284744263,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "housing1",
+      "location": "city",
+      "position": [
+        93.07580245819929,
+        0,
+        -103.7668131222226
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 184,
+        "triangles": 613970,
+        "visibleChunks": 199,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.100000023841858,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "housing2",
+      "location": "city",
+      "position": [
+        93.00110548628892,
+        0,
+        -122.71950745540104
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 139,
+        "triangles": 268990,
+        "visibleChunks": 196,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.100000023841858,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "grove",
+      "location": "city",
+      "position": [
+        115.8831003834943,
+        0,
+        -106.08498251985698
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 130,
+        "triangles": 564738,
+        "visibleChunks": 199,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.899999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "water1",
+      "location": "city",
+      "position": [
+        116.9939634308519,
+        0,
+        -123.90317371390265
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 132,
+        "triangles": 451776,
+        "visibleChunks": 205,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.0999999046325684,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "water2",
+      "location": "city",
+      "position": [
+        135.86889561983395,
+        0,
+        -125.98553601064822
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 110,
+        "triangles": 28210,
+        "visibleChunks": 183,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 1.7999999523162842,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "gem",
+      "location": "city",
+      "position": [
+        106.1116306421196,
+        0,
+        -97.05036285319359
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 353,
+        "triangles": 505000,
+        "visibleChunks": 197,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.799999952316284,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "lab",
+      "position": [
+        24,
+        -24,
+        31
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 78,
+        "triangles": 94842,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4.799999952316284,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "assemble",
+      "location": "lab",
+      "position": [
+        22.113750461950726,
+        -24,
+        27.227500923901452
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 72,
+        "triangles": 83416,
+        "visibleChunks": 219,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.399999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "city",
+      "position": [
+        24,
+        0,
+        31
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 271,
+        "triangles": 159624,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4.300000071525574,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "scan1",
+      "location": "city",
+      "position": [
+        213.80332227106578,
+        0,
+        39.98398444575249
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 36,
+      "render": {
+        "calls": 95,
+        "triangles": 41590,
+        "visibleChunks": 191,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4.899999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "scan2",
+      "location": "city",
+      "position": [
+        220.95390970743034,
+        0,
+        75.76933958165296
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 38,
+      "render": {
+        "calls": 122,
+        "triangles": 51140,
+        "visibleChunks": 189,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4.899999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "scan3",
+      "location": "city",
+      "position": [
+        198.18280319731846,
+        0,
+        65.0857662043131
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 40,
+      "render": {
+        "calls": 344,
+        "triangles": 192420,
+        "visibleChunks": 204,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4.699999928474426,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "valve",
+      "location": "city",
+      "position": [
+        221.93494571974358,
+        0,
+        71.98111446502696
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 42,
+      "render": {
+        "calls": 94,
+        "triangles": 38990,
+        "visibleChunks": 190,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4.899999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "gem",
+      "location": "city",
+      "position": [
+        212.23925911703708,
+        0,
+        69.07179292517625
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 43,
+      "render": {
+        "calls": 346,
+        "triangles": 194478,
+        "visibleChunks": 194,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 6.600000023841858,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "lab",
+      "position": [
+        24,
+        -24,
+        31
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 19,
+      "render": {
+        "calls": 79,
+        "triangles": 94862,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.6999999284744263,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "assemble",
+      "location": "lab",
+      "position": [
+        22.046672957576774,
+        -24,
+        27.093345915153566
+      ],
+      "assembled": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "heat": 8,
+      "render": {
+        "calls": 76,
+        "triangles": 83508,
+        "visibleChunks": 219,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.600000023841858,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "city",
+      "position": [
+        24,
+        0,
+        31
+      ],
+      "assembled": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 276,
+        "triangles": 159856,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 5.5,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "cargo",
+      "location": "city",
+      "position": [
+        13.995208128274545,
+        0,
+        34.16680497892884
+      ],
+      "assembled": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 292,
+        "triangles": 173276,
+        "visibleChunks": 218,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.100000023841858,
+        "targetFPS": 90
+      }
+    }
+  ],
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "assets": []
+}

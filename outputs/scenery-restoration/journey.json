@@ -1,0 +1,884 @@
+{
+  "journey": [
+    {
+      "id": "fuse",
+      "location": "city",
+      "position": [
+        -13.828004943491347,
+        0,
+        24.086260554792954
+      ],
+      "assembled": [],
+      "heat": 5,
+      "render": {
+        "calls": 182,
+        "triangles": 91116,
+        "visibleChunks": 203,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 5.699999928474426,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "power",
+      "location": "city",
+      "position": [
+        -33.909138774902424,
+        0,
+        8.072457815229116
+      ],
+      "assembled": [],
+      "heat": 10,
+      "render": {
+        "calls": 155,
+        "triangles": 60724,
+        "visibleChunks": 208,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "circuit",
+      "location": "city",
+      "position": [
+        -48.83724781841554,
+        0,
+        28.774300280482855
+      ],
+      "assembled": [],
+      "heat": 0,
+      "render": {
+        "calls": 174,
+        "triangles": 76676,
+        "visibleChunks": 217,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 6.300000071525574,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "clinic",
+      "location": "city",
+      "position": [
+        -47.0811928824869,
+        0,
+        33.769062388325686
+      ],
+      "assembled": [],
+      "heat": 0,
+      "render": {
+        "calls": 228,
+        "triangles": 195744,
+        "visibleChunks": 217,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 7.299999952316284,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "gem",
+      "location": "city",
+      "position": [
+        -46.059097218919675,
+        0,
+        29.260673540663753
+      ],
+      "assembled": [],
+      "heat": 0,
+      "render": {
+        "calls": 253,
+        "triangles": 164644,
+        "visibleChunks": 217,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 7,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "lab",
+      "position": [
+        24,
+        -24,
+        31
+      ],
+      "assembled": [],
+      "heat": 0,
+      "render": {
+        "calls": 76,
+        "triangles": 94802,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.5,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "assemble",
+      "location": "lab",
+      "position": [
+        22.04667062289147,
+        -24,
+        27.093341245782952
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 70,
+        "triangles": 83198,
+        "visibleChunks": 219,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.899999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "city",
+      "position": [
+        24,
+        0,
+        31
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 255,
+        "triangles": 158784,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 5,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "ladder",
+      "location": "city",
+      "position": [
+        -103,
+        9,
+        -73
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 30,
+      "render": {
+        "calls": 124,
+        "triangles": 40828,
+        "visibleChunks": 198,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 1.7000000476837158,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "panels",
+      "location": "city",
+      "position": [
+        -107.82946647299583,
+        9,
+        -73
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 31,
+      "render": {
+        "calls": 125,
+        "triangles": 41646,
+        "visibleChunks": 200,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4.199999928474426,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "panel1",
+      "location": "city",
+      "position": [
+        -118.70762312147686,
+        9,
+        -74.94765211709607
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 33,
+      "render": {
+        "calls": 127,
+        "triangles": 31604,
+        "visibleChunks": 201,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "panel2",
+      "location": "city",
+      "position": [
+        -116.03462372629109,
+        9,
+        -83.88424311607449
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 35,
+      "render": {
+        "calls": 176,
+        "triangles": 86032,
+        "visibleChunks": 197,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.299999952316284,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "panel3",
+      "location": "city",
+      "position": [
+        -106.09175402061923,
+        9,
+        -91.9257916046702
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 36,
+      "render": {
+        "calls": 204,
+        "triangles": 122808,
+        "visibleChunks": 208,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.399999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "gem",
+      "location": "city",
+      "position": [
+        -107.96266393294273,
+        9,
+        -84.15507324004858
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 37,
+      "render": {
+        "calls": 201,
+        "triangles": 98034,
+        "visibleChunks": 208,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.200000047683716,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "ladder",
+      "location": "city",
+      "position": [
+        -99,
+        0,
+        -69.8
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 38,
+      "render": {
+        "calls": 292,
+        "triangles": 155242,
+        "visibleChunks": 200,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.3000000715255737,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "lab",
+      "position": [
+        24,
+        -24,
+        31
+      ],
+      "assembled": [
+        0
+      ],
+      "heat": 18,
+      "render": {
+        "calls": 77,
+        "triangles": 94822,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 1.5,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "assemble",
+      "location": "lab",
+      "position": [
+        22.06977952539692,
+        -24,
+        27.13955905079381
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 6,
+      "render": {
+        "calls": 73,
+        "triangles": 83420,
+        "visibleChunks": 219,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 1.5,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "city",
+      "position": [
+        24,
+        0,
+        31
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 254,
+        "triangles": 159226,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.600000023841858,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "stakes",
+      "location": "city",
+      "position": [
+        98.88812927922176,
+        0,
+        -85.88666564248349
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 10,
+      "render": {
+        "calls": 144,
+        "triangles": 569490,
+        "visibleChunks": 198,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.1999999284744263,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "housing1",
+      "location": "city",
+      "position": [
+        93.07580245819929,
+        0,
+        -103.7668131222226
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 184,
+        "triangles": 613970,
+        "visibleChunks": 199,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.100000023841858,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "housing2",
+      "location": "city",
+      "position": [
+        93.00110548628892,
+        0,
+        -122.71950745540104
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 139,
+        "triangles": 268990,
+        "visibleChunks": 196,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.100000023841858,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "grove",
+      "location": "city",
+      "position": [
+        115.8831003834943,
+        0,
+        -106.08498251985698
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 130,
+        "triangles": 564738,
+        "visibleChunks": 199,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.899999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "water1",
+      "location": "city",
+      "position": [
+        116.9939634308519,
+        0,
+        -123.90317371390265
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 132,
+        "triangles": 451776,
+        "visibleChunks": 205,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.0999999046325684,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "water2",
+      "location": "city",
+      "position": [
+        135.86889561983395,
+        0,
+        -125.98553601064822
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 110,
+        "triangles": 28210,
+        "visibleChunks": 183,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 1.7999999523162842,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "gem",
+      "location": "city",
+      "position": [
+        106.1116306421196,
+        0,
+        -97.05036285319359
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 353,
+        "triangles": 505000,
+        "visibleChunks": 197,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.799999952316284,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "lab",
+      "position": [
+        24,
+        -24,
+        31
+      ],
+      "assembled": [
+        0,
+        1
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 78,
+        "triangles": 94842,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4.799999952316284,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "assemble",
+      "location": "lab",
+      "position": [
+        22.113750461950726,
+        -24,
+        27.227500923901452
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 72,
+        "triangles": 83416,
+        "visibleChunks": 219,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.399999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "city",
+      "position": [
+        24,
+        0,
+        31
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 271,
+        "triangles": 159624,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4.300000071525574,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "scan1",
+      "location": "city",
+      "position": [
+        213.80332227106578,
+        0,
+        39.98398444575249
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 36,
+      "render": {
+        "calls": 95,
+        "triangles": 41590,
+        "visibleChunks": 191,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4.899999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "scan2",
+      "location": "city",
+      "position": [
+        220.95390970743034,
+        0,
+        75.76933958165296
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 38,
+      "render": {
+        "calls": 122,
+        "triangles": 51140,
+        "visibleChunks": 189,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4.899999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "scan3",
+      "location": "city",
+      "position": [
+        198.18280319731846,
+        0,
+        65.0857662043131
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 40,
+      "render": {
+        "calls": 344,
+        "triangles": 192420,
+        "visibleChunks": 204,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4.699999928474426,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "valve",
+      "location": "city",
+      "position": [
+        221.93494571974358,
+        0,
+        71.98111446502696
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 42,
+      "render": {
+        "calls": 94,
+        "triangles": 38990,
+        "visibleChunks": 190,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 4.899999976158142,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "gem",
+      "location": "city",
+      "position": [
+        212.23925911703708,
+        0,
+        69.07179292517625
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 43,
+      "render": {
+        "calls": 346,
+        "triangles": 194478,
+        "visibleChunks": 194,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 6.600000023841858,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "lab",
+      "position": [
+        24,
+        -24,
+        31
+      ],
+      "assembled": [
+        0,
+        1,
+        2
+      ],
+      "heat": 19,
+      "render": {
+        "calls": 79,
+        "triangles": 94862,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.6999999284744263,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "assemble",
+      "location": "lab",
+      "position": [
+        22.046672957576774,
+        -24,
+        27.093345915153566
+      ],
+      "assembled": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "heat": 8,
+      "render": {
+        "calls": 76,
+        "triangles": 83508,
+        "visibleChunks": 219,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 2.600000023841858,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "lift",
+      "location": "city",
+      "position": [
+        24,
+        0,
+        31
+      ],
+      "assembled": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 276,
+        "triangles": 159856,
+        "visibleChunks": 221,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 5.5,
+        "targetFPS": 90
+      }
+    },
+    {
+      "id": "cargo",
+      "location": "city",
+      "position": [
+        13.995208128274545,
+        0,
+        34.16680497892884
+      ],
+      "assembled": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "heat": 0,
+      "render": {
+        "calls": 292,
+        "triangles": 173276,
+        "visibleChunks": 218,
+        "totalChunks": 777,
+        "renderTier": "balanced",
+        "pixelRatio": 1,
+        "frameMS": 3.100000023841858,
+        "targetFPS": 90
+      }
+    }
+  ],
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "assets": [],
+  "verdicts": []
+}

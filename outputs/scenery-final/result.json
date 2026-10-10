@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "scenery": {
+    "buildings": 73,
+    "trees": 85,
+    "obstacles": 170
+  },
+  "tasks": 49,
+  "ending": {
+    "version": 1,
+    "ending": "green",
+    "total": 100,
+    "reserve": 14,
+    "workers": 3,
+    "carbon": 18,
+    "energy": 62,
+    "ecosystem": 65,
+    "access": 2,
+    "validRiver": true,
+    "checks": {
+      "clinic": true,
+      "workers": true,
+      "transport": true,
+      "carbon": true,
+      "ecosystem": true,
+      "river": true
+    }
+  },
+  "verdicts": [
+    {
+      "status": 200,
+      "body": {
+        "version": 1,
+        "ending": "green",
+        "total": 100,
+        "reserve": 14,
+        "workers": 3,
+        "carbon": 18,
+        "energy": 62,
+        "ecosystem": 65,
+        "access": 2,
+        "validRiver": true,
+        "checks": {
+          "clinic": true,
+          "workers": true,
+          "transport": true,
+          "carbon": true,
+          "ecosystem": true,
+          "river": true
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "assets": [],
+  "restart": true,
+  "savedCheckpointResume": true
+}
