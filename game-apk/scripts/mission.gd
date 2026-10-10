@@ -516,7 +516,7 @@ func _do_interaction() -> void:
 		_notify("Dr. Meera: Bring the next district's stone to this reactor.")
 		return
 	if a.id.begins_with("budget:"):
-		var id := a.id.trim_prefix("budget:")
+		var id: String = str(a.id).trim_prefix("budget:")
 		if budget.has(id):
 			budget.erase(id)
 		elif _budget_total() + int(COSTS[id]) <= 100:
@@ -819,7 +819,7 @@ func _process(delta: float) -> void:
 func _update_hud() -> void:
 	if objective_label == null:
 		return
-	var name := "REACTOR: FINAL ACTIVATION" if assembled == 5 else STAGES[stage].to_upper()
+	var name: String = "REACTOR: FINAL ACTIVATION" if assembled == 5 else str(STAGES[stage]).to_upper()
 	objective_label.text = name + "  •  %d/5 STONES" % assembled
 	if ending != "":
 		detail_label.text = "ADVENTURE COMPLETE — " + ending.to_upper() + " ENDING"
