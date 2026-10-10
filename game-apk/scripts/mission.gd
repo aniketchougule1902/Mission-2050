@@ -46,6 +46,8 @@ var ui_tick := 0.0
 var anim_clock := 0.0
 var notice_seconds := 0.0
 var menu_open := true
+var garden_working := false
+var autosave_time := 0.0
 var cached_save: Dictionary = {}
 
 func _ready() -> void:
@@ -297,6 +299,7 @@ func _new_game() -> void:
 	in_lab = false
 	driving = false
 	busy = false
+	garden_working = false
 	tasks = {}
 	budget = []
 	decisions = []
@@ -313,6 +316,8 @@ func _new_game() -> void:
 	_save_game()
 
 func _save_game() -> void:
+	if player == null:
+		return
 	var dict := {"v":1,"stage":stage,"assembled":assembled,"stone":stone,"lab":in_lab,
 		"x":player.position.x,"z":player.position.z,"tasks":tasks,"budget":budget,
 		"decisions":decisions,"night":night_result,"ending":ending}
@@ -542,8 +547,10 @@ func _do_interaction() -> void:
 		_notify("Power plan applied: "+a.label)
 	elif a.id in ["housing1","housing2","water1","water2"]:
 		busy = true
+		garden_working = true
 		_notify("Watering saplings…" if a.id.begins_with("water") else "Planting a native tree…")
 		var finished: bool = await world.play_ecology(a.id,right_arm)
+		garden_working = false
 		busy = false
 		if not finished:
 			_notify("Garden animation interrupted; try again.")
@@ -695,9 +702,9 @@ func _toggle_drive() -> void:
 		_notify("Approach the yellow utility vehicle to drive.")
 		return
 	driving = not driving
-	appearance.visible = not driving
+	appearance.visible = not driving and camera_distance >= 1.0
 	if driving:
-		van.position = Vector3(player.position.x,0,player.position.z)
+		player.position = Vector3(van.position.x,player.position.y,van.position.z)
 		_notify("Electric vehicle engaged. RUN boosts speed; DRIVE exits.")
 	else:
 		player.position = van.position + Vector3(2.5,0.12,0)
@@ -705,6 +712,7 @@ func _toggle_drive() -> void:
 
 func _cycle_camera() -> void:
 	camera_distance = 4.5 if camera_distance > 6.0 else (0.01 if camera_distance > 1.0 else 7.8)
+	appearance.visible = not driving and camera_distance >= 1.0
 	_notify("Camera switched.")
 
 func _toggle_pause() -> void:
@@ -783,7 +791,8 @@ func _process(delta: float) -> void:
 	left_leg.rotation.x = lerpf(left_leg.rotation.x,swing,clampf(delta*10,0,1))
 	right_leg.rotation.x = lerpf(right_leg.rotation.x,-swing,clampf(delta*10,0,1))
 	left_arm.rotation.x = -left_leg.rotation.x * 0.7
-	right_arm.rotation.x = -right_leg.rotation.x * 0.7
+	if not garden_working:
+		right_arm.rotation.x = -right_leg.rotation.x * 0.7
 	if stone >= 0:
 		appearance.position.y = sin(anim_clock*2.5)*0.025
 	else:
@@ -797,6 +806,11 @@ func _process(delta: float) -> void:
 		notice_seconds -= delta
 		if notice_seconds <= 0.0:
 			toast_label.text = ""
+	if not paused and not busy:
+		autosave_time += delta
+		if autosave_time > 10.0:
+			autosave_time = 0.0
+			_save_game()
 	ui_tick += delta
 	if ui_tick > 0.2:
 		ui_tick = 0.0
