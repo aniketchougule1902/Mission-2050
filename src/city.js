@@ -1,3 +1,4 @@
+import {t} from './locale.js';
 import * as T from '/vendor/three.module.js';
 import {GLTFLoader} from '/vendor/GLTFLoader.js';
 import {HDRLoader} from '/vendor/HDRLoader.js';
@@ -69,6 +70,15 @@ export function createWorld(canvas,onFPS,{quality='balanced'}={}){
  sign('SECURITY / AUTHORISED FIELD STAFF',0,2.3,13.2,7,site);
  const gates=[];districts.forEach((d,i)=>{if(!i)return;const l=Math.hypot(...d.center),g=new T.Group();g.position.set(d.center[0]/l*43,0,d.center[1]/l*43);g.rotation.y=Math.atan2(d.center[0],d.center[1]);city.add(g);const door=box(0,.4,0,11,2.4,.15,new T.MeshStandardMaterial({color:0x4b5760,metalness:.6,roughness:.35}),g);for(const x of [-6,6]){box(x,0,0,.3,3.6,.4,metal,g);box(x,2.5,0,.36,.8,.45,new T.MeshBasicMaterial({color:0xdd6e46}),g);}gates.push({root:g,door,level:i});});
  
+ // Street furniture is batched with facades; no additional animated props or lights.
+ for(const [x,z] of [[-43,40],[-43,23],[35,43],[39,43]]){
+  if(buildingLots.some(b=>Math.abs(x-b.x)<b.w/2+2&&Math.abs(z-b.z)<b.d/2+2))continue;
+  box(x,.48,z,2.1,.12,.55,brick,city,true);box(x,.65,z+.25,2.1,.5,.08,brick);
+  for(const side of [-.8,.8])box(x+side,.05,z,.09,.45,.45,metal);
+ }
+ for(const [key,x,z] of [['nav.clinicSign',-18,19],['nav.researchSign',12,19]]){
+  cyl(x,0,z,.055,2.5,metal);sign(t(key),x,2.15,z,4.5);
+ }
  const loader=new GLTFLoader(),treePositions=treeSites;
  for(const [x,z] of treePositions)obstacles.push({x,z,w:.35,d:.35,h:8});
  // Distance-based chunks keep instanced scans out of the GPU frustum when far away.
@@ -115,7 +125,7 @@ export function createWorld(canvas,onFPS,{quality='balanced'}={}){
   }
  }
  const trees=treePositions.map(([x,z],i)=>({x,z,yaw:x*.2,scale:.85+(Math.abs(x+z)%7)/25}));
- const scanned=trees.filter((p,i)=>i%3===0),simplified=trees.filter((p,i)=>i%3!==0);
+ const scanned=trees,simplified=[];
  simpleTrees(simplified);
  simpleTrees(scanned,true);
  scanInstances('/models/island_tree_01.glb',scanned,8,'y',true,()=>{});

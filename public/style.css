@@ -21,3 +21,18 @@ body:has(#cinematic.on) #prompt,body:has(#cinematic.on) #navigation,body:has(#ci
 #radio{pointer-events:none}.conv-advance{pointer-events:auto}body.textmode #radio{bottom:12px;left:20px;transform:none;width:min(500px,85vw)}body.textmode .conv-advance{pointer-events:none}body.textmode[data-screen=ending] #radio{bottom:12px}
 
 body[data-screen=city] .missionbox,body[data-screen=city] .meters,body[data-screen=city] #radio{backdrop-filter:none}body[data-screen=city] .vignette{mix-blend-mode:normal}#heat-shimmer{display:none}body.heat-active #heat-shimmer{display:block}
+
+/* Compact navigation leaves the world visible, with keyboard accessible controls. */
+#questToggle{width:100%;text-align:left;padding:.65rem;background:#122d36;color:#eac58b;border:1px solid #618385;border-radius:6px}
+.missionbox #queststeps,.missionbox #hint,.missionbox #tasktrack{display:none}.missionbox.expanded #queststeps,.missionbox.expanded #hint,.missionbox.expanded #tasktrack{display:block}
+#compass{position:absolute;top:70px;left:50%;transform:translateX(-50%);width:min(360px,42vw);text-align:center;background:#0b1822d9;border:1px solid #628a8d;border-radius:8px;padding:5px;pointer-events:none}
+.compass-window{overflow:hidden;height:26px;position:relative}.compass-window:after{content:'▾';position:absolute;left:50%;top:9px;color:#ffc568}
+#compassTape{position:absolute;left:50%;display:flex;width:2160px;transform:translateX(-50%);height:25px}#compassTape span{width:90px;flex-shrink:0;border-left:1px solid #688b8d;font-size:12px;letter-spacing:2px}
+#compassHeading{font-size:11px;color:#ecc385}#navturn{display:block;color:#ffd68b;font-size:13px;margin-top:5px}
+#minimapToggle{position:absolute;right:22px;bottom:88px;border:2px solid #89b3ae;border-radius:50%;padding:0;width:180px;height:180px;background:#0b1822;overflow:hidden;pointer-events:auto}
+#minimapToggle #minimap{position:static;display:block;border:0;width:100%;height:100%;border-radius:50%}
+#minimapToggle:hover{border-color:#ffcf82}#questToggle:focus-visible,#minimapToggle:focus-visible{outline:3px solid #ffcf82;outline-offset:3px}
+@media(max-width:700px){#compass{top:64px;width:44vw}#minimapToggle{width:112px;height:112px;right:12px;bottom:176px}}
+
+#navturn{grid-column:1/4}.missionbox.expanded{max-height:45vh;overflow:auto}.missionbox.expanded #queststeps{max-height:none;overflow:visible}.missionbox.expanded .queststep.done{display:flex}
+#compassTape span{text-align:center}#questToggle{pointer-events:auto}

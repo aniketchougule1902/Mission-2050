@@ -13,7 +13,7 @@ const CHARS={
  system:{label:'',color:'#92a6a5',initial:'◈',blipHz:0}
 };
 
-export function createConversation(container,blipFn,{reduced=false}={}){
+export function createConversation(container,blipFn,{reduced=false,speak,silence}={}){
  const avatarEl=container.querySelector('.conv-avatar'),nameEl=container.querySelector('.conv-name'),textEl=container.querySelector('.conv-text'),advanceEl=container.querySelector('.conv-advance'),live=container.querySelector('.conv-live');
  let queue=[],line=null,ci=0,elapsed=0,hold=0,done=false;
  function display(){
@@ -24,9 +24,9 @@ export function createConversation(container,blipFn,{reduced=false}={}){
   avatarEl.style.background=ch.color;avatarEl.textContent=ch.initial;
   nameEl.textContent=ch.label?t(ch.label):'';nameEl.style.color=ch.color;container.style.borderLeftColor=ch.color;
   textEl.textContent='';advanceEl.textContent=t('conv.advance');advanceEl.classList.remove('visible');
-  if(live)live.textContent=t(line.key);
+  if(live)live.textContent=t(line.key);speak?.(t(line.key),line.who);
  }
- function advance(){line?.resolve?.();display();}
+ function advance(){silence?.();line?.resolve?.();display();}
  function tick(dt){
   if(!line)return;
   if(done){hold+=dt;if(hold>=(line.hold||3.5))advance();return;}
@@ -37,7 +37,7 @@ export function createConversation(container,blipFn,{reduced=false}={}){
  }
  function skip(){if(!line)return;if(done)advance();else{ci=t(line.key).length;textEl.textContent=t(line.key);done=true;advanceEl.classList.add('visible');}}
  function play(lines){if(!lines?.length)return Promise.resolve();return new Promise(resolve=>{queue.push(...lines.map((l,i)=>({...l,resolve:i===lines.length-1?resolve:null})));if(!line)display();});}
- function cancel(){line?.resolve?.();for(const l of queue)l.resolve?.();queue=[];line=null;container.classList.remove('active','visible');}
+ function cancel(){silence?.();line?.resolve?.();for(const l of queue)l.resolve?.();queue=[];line=null;container.classList.remove('active','visible');}
  advanceEl.addEventListener('click',skip);
  return {play,tick,skip,cancel,isActive:()=>!!line};
 }

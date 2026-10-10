@@ -19,10 +19,10 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
  let renderScale=renderProfile('balanced',innerWidth,innerHeight,devicePixelRatio).scale,idleDraw=0,gpuLost=false,adaptiveLowDetail=false,chunkCheckTime=Infinity,visibleStaticChunks=staticChunks.length,trafficSnapshotAge=Infinity,trafficTelemetry=[];
   const surfaceFX=createSurfaceEffects(scene,reduced),presentation=createPresentation(renderer);let renderStats={calls:0,triangles:0};
   let opening=false;const breadPose=new T.Object3D();breadPose.rotation.x=-Math.PI/2;const breadCoords=[];
-  let lastRoutePlan=null,physicsTime=0,walkX=0,walkZ=0,carX=0,carZ=0,trafficIndex=()=>[],trafficIndexTime=Infinity,brakeTime=0;
+  let gaitPhase=0,moveSide=0,moveForward=0,carSafe=null;let lastRoutePlan=null,physicsTime=0,walkX=0,walkZ=0,carX=0,carZ=0,trafficIndex=()=>[],trafficIndexTime=Infinity,brakeTime=0;
  let targetFPS=90,frameBudget=createFrameBudget(targetFPS),renderElapsed=0,ecologyPose=null;
  const camTarget=new T.Vector3(),camHead=new T.Vector3(),camDelta=new T.Vector3(),camPoint=new T.Vector3(),actorWorld=new T.Vector3();
- const actors=[],guards=[],markers=new Map(),labOffset=new T.Vector3(LAB_X,0,LAB_Z),obstacleIndex=createObstacleIndex(obstacles),labCameraIndex=createObstacleIndex([{x:LAB_X,z:LAB_Z-8,w:3.4,d:3.4,bottom:LAB_Y,h:LAB_Y+6.4}]);
+ const actors=[],guards=[],markers=new Map(),labOffset=new T.Vector3(LAB_X,0,LAB_Z),obstacleIndex=(x,z)=>staticObstacleIndex(x,z),labCameraIndex=createObstacleIndex([{x:LAB_X,z:LAB_Z-8,w:3.4,d:3.4,bottom:LAB_Y,h:LAB_Y+6.4}]);
  const metal=new T.MeshStandardMaterial({color:0x344752,metalness:.8,roughness:.3}),gold=new T.MeshStandardMaterial({color:0xd9b86d,metalness:.5,roughness:.3});
  function mesh(geometry,material,position,parent=scene,name){const m=new T.Mesh(geometry,material);m.position.set(...position);m.castShadow=true;m.receiveShadow=true;m.name=name||'';parent.add(m);return m;}
  function box(w,h,d,material,pos,parent=scene){return mesh(new T.BoxGeometry(w,h,d),material,pos,parent);}
@@ -36,7 +36,7 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
  const loader=new GLTFLoader();let modelPromise;
  function actor(gltf,position,parent,scientist=false){const root=new T.Group(),model=clone(gltf.scene);model.updateMatrixWorld(true);const bounds=new T.Box3().setFromObject(model),scale=1.78/bounds.getSize(new T.Vector3()).y;model.scale.setScalar(scale);model.position.y=-bounds.min.y*scale;model.rotation.y=Math.PI;root.add(model);root.position.set(...position);parent.add(root);model.traverse(n=>{if(n.isMesh){n.castShadow=true;n.receiveShadow=true;if(scientist&&n.material){n.material=n.material.clone();n.material.color.set(0xdde5e3);n.material.roughness=.66;}}});
   const mixer=new T.AnimationMixer(model),clips=Object.fromEntries(gltf.animations.filter(c=>['Idle','Walk','Run'].includes(c.name)).map(c=>[c.name,mixer.clipAction(c)]));let current='';const play=name=>{if(name===current||!clips[name])return;clips[name].reset().setEffectiveWeight(1).play();if(current)clips[current].crossFadeTo(clips[name],.18,false);current=name;};play('Idle');
-  const item={root,model,mixer,clips,play,hand:model.getObjectByName('mixamorigRightHand'),head:model.getObjectByName('mixamorigHead'),chest:model.getObjectByName('mixamorigSpine2')};actors.push(item);
+  const bone=name=>model.getObjectByName('mixamorig:'+name)||model.getObjectByName('mixamorig'+name);const bones=Object.fromEntries(['LeftUpLeg','RightUpLeg','LeftLeg','RightLeg','LeftArm','RightArm','LeftForeArm','RightForeArm'].map(name=>[name,bone(name)]));const rest=Object.fromEntries(Object.entries(bones).filter(([,b])=>b).map(([name,b])=>[name,b.rotation.clone()]));const item={root,model,mixer,clips,play,bones,rest,hand:bone('RightHand'),head:bone('Head'),chest:bone('Spine2')};actors.push(item);
   if(scientist){const coat=mesh(new T.CylinderGeometry(.27,.36,.75,24),new T.MeshStandardMaterial({color:0xe2e6df,roughness:.85}),[0,.91,0],root);box(.11,.16,.018,new T.MeshStandardMaterial({color:0x46b8bb,emissive:0x17585b}),[-.14,1.2,.28],root);}
   return item;
  }
@@ -67,6 +67,12 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
   batchStaticMeshes(T,model,model.children.filter(m=>m.isMesh),{chunkSize:Infinity});
   model.position.set(i%2?3:-3,0,-260+i*65);city.add(model);traffic.push({model,wheels,offset:i*65,direction:i%2?1:-1});
  }
+ const parked=[];
+ for(const [x,z,yaw] of [[18,60,0],[18,75,0],[-18,65,Math.PI],[42,18,Math.PI/2]]){
+  if(blocked(x,z,0,obstacles,4,'city',2.5))continue;
+  const model=traffic[parked.length%traffic.length].model.clone();model.position.set(x,0,z);model.rotation.y=yaw;city.add(model);parked.push(model);obstacles.push({x,z,w:Math.abs(Math.cos(yaw))*1+Math.abs(Math.sin(yaw))*2.1,d:Math.abs(Math.cos(yaw))*2.1+Math.abs(Math.sin(yaw))*1,h:2});
+ }
+ const staticObstacleIndex=createObstacleIndex(obstacles);
  // Elevator cabin moves physically through the shaft; door panels separate.
  const cabin=new T.Group();cabin.position.set(lift[0],0,lift[1]);scene.add(cabin);const doorMat=new T.MeshStandardMaterial({color:0x263f50,metalness:.85,roughness:.24}),stripMat=new T.MeshBasicMaterial({color:0x68deed});
  box(3.5,.14,3.8,metal,[0,-.07,0],cabin);box(3.5,.14,3.8,metal,[0,3.1,0],cabin);for(const x of [-1.75,1.75]){box(.12,3.1,3.8,doorMat,[x,1.55,0],cabin);box(.03,2.6,.03,stripMat,[x*.97,1.65,-1.6],cabin);}const doors=[box(1.7,3,.08,doorMat,[-.85,1.5,-1.88],cabin),box(1.7,3,.08,doorMat,[.85,1.5,-1.88],cabin),box(1.7,3,.08,doorMat,[-.85,1.5,1.88],cabin),box(1.7,3,.08,doorMat,[.85,1.5,1.88],cabin)];const liftLight=new T.PointLight(0x5bcade,18,7);liftLight.position.set(0,2.6,0);cabin.add(liftLight);
@@ -90,7 +96,8 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
  function updateMarkers(){const ids=new Set(actions.map(a=>a.id));for(const [id,g] of markers)if(!ids.has(id)){scene.remove(g);g.traverse(m=>{m.geometry?.dispose();if(m.material&&m.material!==metal&&m.material!==gold){if(Array.isArray(m.material))m.material.forEach(item=>item.dispose());else m.material.dispose();}});markers.delete(id);}for(const a of actions){let g=markers.get(a.id);if(!g){g=new T.Group();g.position.set(a.x,a.y,a.z);const colour=a.kind==='gem'?stoneColors[phaseOf(state)]:a.id==='lift'?0x7bced8:0xefbc69;const mat=new T.MeshBasicMaterial({color:colour});const ring=mesh(new T.TorusGeometry(.65,.018,6,40),mat,[0,.08,0],g);ring.rotation.x=Math.PI/2;const icon=mesh(new T.OctahedronGeometry(.1),mat,[0,1.3,0],g);g.userData.icon=icon;const halo=aura(colour,.7,g);halo.position.y=1.3;
     if(['switch','repair','budget','test','valve'].includes(a.kind)){box(.5,.95,.38,metal,[0,.48,0],g);box(.34,.2,.025,mat,[0,.74,.2],g);}if(['pickup','deliver'].includes(a.kind))box(.6,.38,.4,gold,[0,.2,0],g);if(a.kind==='gem'){const stone=mesh(new T.IcosahedronGeometry(.19,0),new T.MeshStandardMaterial({color:colour,emissive:colour,emissiveIntensity:1.5}),[0,1,0],g);g.userData.stone=stone;}
     scene.add(g);markers.set(a.id,g);}g.userData.action=a;g.traverse(m=>{if(m.material?.isMeshBasicMaterial&&a.kind==='budget')m.material.color.set(a.selected?0x63deac:0xd8aeec);});}}
- function rebuildRoute(){const target=nearest();if(!target){bread.count=0;routePoints=[];lastRoutePlan=null;return;}const at={x:player.position.x,z:player.position.z},level=phaseOf(state);if(!routeNeedsRefresh(lastRoutePlan,at,target,level,state.location))return;lastRoutePlan={x:at.x,z:at.z,goalId:target.id,tx:target.x,tz:target.z,level,location:state.location};const start=[at.x,at.z],goal=[target.x,target.z];routePoints=state.location==='lab'||player.position.y>7?[start,goal]:route(start,goal,(x,z)=>collision(x,z,.45));const points=[];for(let i=1;i<routePoints.length;i++){const a=routePoints[i-1],b=routePoints[i],d=Math.hypot(b[0]-a[0],b[1]-a[1]);for(let t=0;t<d;t+=3)points.push([a[0]+(b[0]-a[0])*t/d,a[1]+(b[1]-a[1])*t/d]);}const m=new T.Object3D();m.rotation.x=-Math.PI/2;bread.count=Math.min(50,points.length);breadCoords.length=0;breadCoords.push(...points.slice(0,bread.count));for(let i=0;i<bread.count;i++){m.position.set(points[i][0],player.position.y+.12,points[i][1]);m.updateMatrix();bread.setMatrixAt(i,m.matrix);}bread.instanceMatrix.needsUpdate=true;}
+ function breadcrumbFloor(p){return state?.location==='lab'?LAB_Y:roofHeight(p[0],p[1],player.position.y);}
+ function rebuildRoute(){const target=nearest();if(!target){bread.count=0;routePoints=[];lastRoutePlan=null;return;}const at={x:player.position.x,z:player.position.z},level=phaseOf(state);if(!routeNeedsRefresh(lastRoutePlan,at,target,level,state.location))return;lastRoutePlan={x:at.x,z:at.z,goalId:target.id,tx:target.x,tz:target.z,level,location:state.location};const start=[at.x,at.z],goal=[target.x,target.z];routePoints=state.location==='lab'||player.position.y>7?[start,goal]:route(start,goal,(x,z)=>collision(x,z,.45));const points=[];for(let i=1;i<routePoints.length;i++){const a=routePoints[i-1],b=routePoints[i],d=Math.hypot(b[0]-a[0],b[1]-a[1]);for(let t=0;t<d;t+=3)points.push([a[0]+(b[0]-a[0])*t/d,a[1]+(b[1]-a[1])*t/d]);}const m=new T.Object3D();m.rotation.x=-Math.PI/2;bread.count=Math.min(50,points.length);breadCoords.length=0;breadCoords.push(...points.slice(0,bread.count));for(let i=0;i<bread.count;i++){m.position.set(points[i][0],breadcrumbFloor(points[i])+.12,points[i][1]);m.updateMatrix();bread.setMatrixAt(i,m.matrix);}bread.instanceMatrix.needsUpdate=true;}
  function setLocation(location){const underground=location==='lab';city.visible=!underground;lab.visible=underground;shaft.visible=false;sun.visible=!underground;hemi.intensity=underground?.12:1.25;scene.fog=underground?new T.Fog(0x101f2b,20,65):new T.Fog(0xb1bcc3,170,680);scene.background.set(underground?0x0e1b25:0xa5b3bd);cabin.position.y=underground?LAB_Y:0;doors.forEach((d,i)=>d.position.x=i%2?2.35:-2.35);}
  function animateParticles(index,progress,final=false){
    pm.opacity=Math.sin(progress*Math.PI);
@@ -118,9 +125,9 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
  function researcherHand(pose){return new T.Vector3(pose.x+Math.sin(pose.heading)*.3,LAB_Y+1.05,pose.z+Math.cos(pose.heading)*.3);}
  function updateCinematic(dt){const c=cinema;c.elapsed+=dt;const t=c.elapsed,p=Math.min(1,t/c.duration),smooth=v=>v*v*(3-2*v);
   if(c.kind==='elevator'){
-   const closing=Math.min(1,t/1.3);let open=1-closing;const travel=T.MathUtils.clamp((t-1.3)/3.4,0,1);const y=T.MathUtils.lerp(c.from,c.to,smooth(travel));cabin.position.y=y;player.position.lerpVectors(c.entry,new T.Vector3(lift[0],y,lift[1]+.2),smooth(closing));player.position.y=y;if(t>6.1)player.position.z=T.MathUtils.lerp(lift[1]+.2,lift[1]-1,smooth(Math.min(1,(t-6.1)/.4)));city.visible=y>-3;lab.visible=y<-18;shaft.visible=true;sun.visible=y>-3;hemi.intensity=y>-3?1.25:.15;
+   const closing=Math.min(1,t/1.3);let open=1-closing;const travel=T.MathUtils.clamp((t-1.3)/3.4,0,1);const y=T.MathUtils.lerp(c.from,c.to,smooth(travel));cabin.position.y=y;camPoint.set(lift[0],y,lift[1]+.2);player.position.lerpVectors(c.entry,camPoint,smooth(closing));player.position.y=y;if(t>6.1)player.position.z=T.MathUtils.lerp(lift[1]+.2,lift[1]-1,smooth(Math.min(1,(t-6.1)/.4)));city.visible=y>-3;lab.visible=y<-18;shaft.visible=true;sun.visible=y>-3;hemi.intensity=y>-3?1.25:.15;
    if(y<-3&&!c.dark){c.dark=true;scene.background.set(0x0c1925);scene.fog=new T.Fog(0x0c1925,20,70);}if(t>4.7){open=Math.min(1,(t-4.7)/1.4);if(!c.arrival){c.arrival=true;onEvent('elevator.arrival');}}doors.forEach((d,i)=>d.position.x=(i%2?1:-1)*(.85+open*1.5));
-   camTarget.set(LAB_X+.75,y+1.7,LAB_Z+9.4);camera.position.lerpVectors(c.cameraFrom,camTarget,smooth(closing));camHead.set(LAB_X-.2,y+1.5,LAB_Z+4);camHead.lerpVectors(c.lookFrom,camHead,smooth(closing));camera.lookAt(camHead);onEvent('cinematic.stage',{id:t<1.3?'doorsClose':t<4.7?(c.to===LAB_Y?'descent':'ascent'):(c.to===LAB_Y?'doorsOpen':'surfaceOpen'),progress:p});
+   camTarget.set(LAB_X+.75,y+1.7,lift[1]+1.25);camera.position.lerpVectors(c.cameraFrom,camTarget,smooth(closing));camHead.set(LAB_X-.2,y+1.5,lift[1]-2);camHead.lerpVectors(c.lookFrom,camHead,smooth(closing));camera.lookAt(camHead);onEvent('cinematic.stage',{id:t<1.3?'doorsClose':t<4.7?(c.to===LAB_Y?'descent':'ascent'):(c.to===LAB_Y?'doorsOpen':'surfaceOpen'),progress:p});
   }else if(c.kind==='handover'){
    carry.visible=false;fly.visible=true;flyGlow.visible=true;fly.material.color.set(stoneColors[c.index]);fly.material.emissive.set(stoneColors[c.index]);flyGlow.material.color.set(stoneColors[c.index]);
    const dock=core.sockets[c.index].clone().add(core.root.position);let stoneAt;
@@ -160,20 +167,20 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
     const forward=-carX*Math.sin(heading)-carZ*Math.cos(heading),limited=T.MathUtils.clamp(forward,-6,22);
     carX-=Math.sin(heading)*(limited-forward);carZ-=Math.cos(heading)*(limited-forward);speed=limited;
     if(brake&&Math.abs(speed)>10&&!brakeTime){onEvent('brake');brakeTime=1;}
-    const motion=sweptMove(car.position.x,car.position.z,carX*dt,carZ*dt,(x,z)=>collision(x,z,1)||collision(x-Math.sin(heading),z-Math.cos(heading),1)||collision(x+Math.sin(heading),z+Math.cos(heading),1));
-    car.position.set(motion.x,reduced?0:Math.sin(physicsTime*8)*Math.min(.035,Math.abs(speed)*.002),motion.z);
-    if(motion.hit){const bounce=reflectVelocity(carX,carZ,motion.nx,motion.nz);carX=bounce.x;carZ=bounce.z;if(!blockTime){onEvent('vehicle.bump');blockTime=1;}}
+    const motion=sweptMove(car.position.x,car.position.z,carX*dt,carZ*dt,(x,z)=>collision(x,z,1)||collision(x-Math.sin(heading),z-Math.cos(heading),1)||collision(x+Math.sin(heading),z+Math.cos(heading),1),true);
+    if(!motion.hit)carSafe=[motion.x,motion.z];car.position.set(motion.x,reduced?0:Math.sin(physicsTime*8)*Math.min(.035,Math.abs(speed)*.002),motion.z);
+    if(motion.hit){const bounce=reflectVelocity(carX,carZ,motion.nx,motion.nz,0);carX=bounce.x;carZ=bounce.z;if(!blockTime){onEvent('vehicle.bump');blockTime=1;}}
     car.rotation.y=heading;player.position.set(car.position.x,0,car.position.z);wheels.forEach(w=>w.rotation.x-=speed*dt/.43);
    }else{
     let x=(keys.has('d')||keys.has('ArrowRight')?1:0)-(keys.has('a')||keys.has('ArrowLeft')?1:0),z=(keys.has('s')||keys.has('ArrowDown')?1:0)-(keys.has('w')||keys.has('ArrowUp')?1:0),length=Math.hypot(x,z);
-    if(length){x/=length;z/=length;}running=keys.has('Shift')&&length>0;
+    if(length){x/=length;z/=length;}moveSide=x;moveForward=-z;running=keys.has('Shift')&&length>0&&z<=0;
     const v=running?6.2:3.6,targetX=(x*Math.cos(yaw)+z*Math.sin(yaw))*v,targetZ=(-x*Math.sin(yaw)+z*Math.cos(yaw))*v,blend=1-Math.exp(-dt*(length?14:10));
     walkX+=(targetX-walkX)*blend;walkZ+=(targetZ-walkZ)*blend;
     const moved=sweptMove(player.position.x,player.position.z,walkX*dt,walkZ*dt,(x,z)=>collision(x,z),true);
     const distanceMoved=Math.hypot(moved.x-player.position.x,moved.z-player.position.z);player.position.x=moved.x;player.position.z=moved.z;
     if(moved.hit){const slide=reflectVelocity(walkX,walkZ,moved.nx,moved.nz,0);walkX=slide.x;walkZ=slide.z;}
     if(!areaUnlocked(moved.x+targetX*dt,moved.z+targetZ*dt,phaseOf(state))&&state.location==='city'&&!blockTime){onEvent('district.locked');blockTime=2;}
-    if(distanceMoved>.001){player.rotation.y=dampAngle(player.rotation.y,Math.atan2(walkX,walkZ),dt);walking=true;footTime+=dt;}
+    if(distanceMoved>.001){player.rotation.y=dampAngle(player.rotation.y,yaw+Math.PI,dt);walking=true;gaitPhase+=distanceMoved*(running?6:7);footTime+=dt;}
     if(footTime>(running?.28:.46)){onEvent('footstep');if(state.location==='city'&&(Math.hypot(player.position.x-112,player.position.z+109)<70))surfaceFX.emit('dust',player.position.x,player.position.y+.05,player.position.z);if(state.location==='city'&&Math.abs(player.position.x-231)<5)surfaceFX.emit('water',player.position.x,.1,player.position.z);footTime=0;}
     const floor=state.location==='lab'?LAB_Y:roofHeight(player.position.x,player.position.z,player.position.y);
     // Small support changes follow the floor; taller roof transitions use the ladder.
@@ -185,7 +192,7 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
     for(let pass=0;pass<3;pass++)for(const t of trafficIndex(player.position.x,player.position.z)){
      const pushed=driving?pushCarOutOfTraffic(car.position.x,car.position.z,heading,t.x,t.z,t.model.rotation.y):pushOutOfVehicle(player.position.x,player.position.z,.38,t.x,t.z,t.model.rotation.y);
      if(!pushed)continue;
-     player.position.x=pushed.x;player.position.z=pushed.z;
+     if(collision(pushed.x,pushed.z,driving?1.8:.38)){if(driving&&carSafe){car.position.set(carSafe[0],0,carSafe[1]);player.position.copy(car.position);carX=carZ=0;}continue;}player.position.x=pushed.x;player.position.z=pushed.z;
      if(driving){car.position.x=pushed.x;car.position.z=pushed.z;const bounce=reflectVelocity(carX,carZ,pushed.nx,pushed.nz);carX=bounce.x;carZ=bounce.z;}
      else{const slide=reflectVelocity(walkX,walkZ,pushed.nx,pushed.nz,0);walkX=slide.x;walkZ=slide.z;}
      if(!trafficCooldown){trafficCooldown=2.5;onEvent(driving?'vehicle.bump':'traffic.hit',{traffic:true,x:t.x,z:t.z});}
@@ -193,7 +200,7 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
    }
   });
    if(physicsSteps){lastWalking=walking;lastRunning=running;}else if(active&&!paused&&!cinema&&!climbing&&!ecology.playing()){walking=lastWalking;running=lastRunning;}
-   hero?.play(walking?(running?'Run':'Walk'):'Idle');
+   hero?.play(climbing?'Idle':walking?(running?'Run':'Walk'):'Idle');if(hero){const rate=moveForward<-.1?-1:1;hero.clips.Walk?.setEffectiveTimeScale(rate);}
    for(const a of actors){
     const visible=a===hero||(lab.visible&&a.root.parent===lab)||(city.visible&&a.root.parent===city&&a.root.getWorldPosition(actorWorld).distanceToSquared(player.position)<2500);
     if(a!==hero)a.root.visible=visible;
@@ -204,9 +211,26 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
      if(a!==hero&&a.head&&!cinema&&a.root.getWorldPosition(actorWorld).distanceToSquared(player.position)<36){const angle=Math.atan2(player.position.x-actorWorld.x,player.position.z-actorWorld.z)-a.root.rotation.y-Math.PI;a.head.rotation.y+=T.MathUtils.clamp(Math.atan2(Math.sin(angle),Math.cos(angle)),-.5,.5);}
     }
    }
-  if(climbing&&!paused){climbing.elapsed+=dt;const p=Math.min(1,climbing.elapsed/1.8);player.position.lerpVectors(climbing.from,climbing.to,p*p*(3-2*p));if(p===1)climbing=null;}
+  // Apply steps on this model's own bones, after native clips have sampled.
+  if(hero&&(climbing||walking&&Math.abs(moveSide)>.1)){
+   const cycle=climbing?climbing.elapsed*5:gaitPhase;
+   for(const [side,offset] of [['Left',0],['Right',Math.PI]]){
+    const wave=Math.sin(cycle+offset),bend=Math.max(0,wave);
+    const pose=(part,x,z=0)=>{const name=side+part,b=hero.bones[name],r=hero.rest[name];if(b&&r){b.rotation.copy(r);b.rotation.x+=x;b.rotation.z+=z;}};
+    if(climbing){pose('UpLeg',-.65*bend);pose('Leg',.9*bend);pose('Arm',-2.35+.25*wave);pose('ForeArm',-.45-.3*bend);}
+    else{pose('UpLeg',-.32*moveForward*wave,.32*moveSide*wave);pose('Leg',.35*bend);}
+   }
+  }
+  if(climbing&&!paused){climbing.elapsed+=dt;const c=climbing,p=Math.min(1,c.elapsed/c.duration);
+   // Approach the ladder, climb its rungs vertically, then step onto the landing.
+   if(p<.15){player.position.lerpVectors(c.from,c.start,p/.15);}
+   else if(p<.85){player.position.lerpVectors(c.start,c.end,(p-.15)/.7);}
+   else player.position.lerpVectors(c.end,c.to,(p-.85)/.15);
+   player.rotation.y=dampAngle(player.rotation.y,Math.PI,dt);
+   if(p===1){climbing=null;lastRoutePlan=null;routeTime=2;}
+  }
   if(cinema)updateCinematic(cinematicDt);else if(opening&&!reduced){camera.position.set(45+Math.sin(time*.12)*20,22,65);camera.lookAt(-30,8,15);}else if(active)followCamera(dt);else{camera.position.set(45+Math.sin(time*.05)*10,22,65);camera.lookAt(-30,8,15);}
-  sky.visible=city.visible;sky.material.uniforms.day.value=[4,9,15,21,29][phaseOf(state||{assembled:[]})]/30;
+  sky.visible=city.visible&&!cinema;sky.material.uniforms.day.value=[4,9,15,21,29][phaseOf(state||{assembled:[]})]/30;
   if(lab.visible){core.rings.forEach((m,i)=>m.rotation.z+=dt*(.15+i*.08));core.stones.forEach(m=>m.rotation.y+=dt*.2);}carry.rotation.y+=dt;carryGlow.position.copy(carry.position);if(!cinema)carry.visible=state?.stone>=0;carryGlow.visible=carry.visible;
   if(ecologyPose&&!paused){ecologyPose.elapsed+=dt;player.position.lerpVectors(ecologyPose.from,ecologyPose.to,Math.min(1,ecologyPose.elapsed/.4));player.rotation.y=Math.atan2(ecologyPose.site[0]-player.position.x,ecologyPose.site[1]-player.position.z);}
   ecology.tick(paused&&!cinema?0:cinematicDt,hero);if(!ecology.playing())ecologyPose=null;
@@ -233,12 +257,12 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
       (!m.userData.foliageDetail||near)&&(!m.userData.foliageProxy||!m.userData.detailReady||!near);
     });
    traffic.forEach(t=>{t.model.visible=city.visible&&Math.abs(t.model.position.z-player.position.z)<125;});
-  if(active){sun.target.position.copy(player.position);sun.position.set(player.position.x-45,75,player.position.z+30);routeTime+=dt;if(routeTime>1.5){routeTime=0;rebuildRoute();}}bread.visible=active&&!cinema;const target=active?nearest():null;waypoint.visible=!!target&&!cinema&&state?.location==='city';if(target){waypoint.position.set(target.x,target.y+9,target.z);waypoint.material.opacity=reduced?.12:.12+Math.sin(time*2)*.03;}bread.material.opacity=reduced?.8:.7+Math.sin(time*3)*.1;if(bread.visible&&!reduced){for(let i=0;i<bread.count;i++){const p=breadCoords[i];if(!p)continue;breadPose.position.set(p[0],player.position.y+.12+Math.sin(time*2+i*.4)*.025,p[1]);breadPose.updateMatrix();bread.setMatrixAt(i,breadPose.matrix);}bread.instanceMatrix.needsUpdate=true;}
-  contact.position.set(player.position.x,player.position.y+.09,player.position.z);contact.visible=active&&!driving;
+  if(active){sun.target.position.copy(player.position);sun.position.set(player.position.x-45,75,player.position.z+30);routeTime+=dt;if(routeTime>1.5){routeTime=0;rebuildRoute();}}bread.visible=active&&!cinema&&!climbing;const target=active?nearest():null;waypoint.visible=!!target&&!cinema&&state?.location==='city';if(target){waypoint.position.set(target.x,target.y+9,target.z);waypoint.material.opacity=reduced?.12:.12+Math.sin(time*2)*.03;}bread.material.opacity=reduced?.8:.7+Math.sin(time*3)*.1;if(bread.visible&&!reduced){for(let i=0;i<bread.count;i++){const p=breadCoords[i];if(!p)continue;breadPose.position.set(p[0],breadcrumbFloor(p)+.12,p[1]);breadPose.updateMatrix();bread.setMatrixAt(i,breadPose.matrix);}bread.instanceMatrix.needsUpdate=true;}
+  contact.position.set(player.position.x,breadcrumbFloor([player.position.x,player.position.z])+.09,player.position.z);contact.visible=active&&!driving;
    trafficSnapshotAge+=dt;
     if(trafficSnapshotAge>=.2){trafficSnapshotAge=0;
      trafficTelemetry=traffic.map(t=>({x:t.model.position.x,z:t.model.position.z,yaw:t.model.rotation.y,direction:t.direction}));}
-    const info={position:[player.position.x,player.position.y,player.position.z],nearest:nearest(),driving,speed:Math.abs(speed)*3.6,modelLoaded:loaded,nativeRig:true,securityGuards:guards.length,traffic:trafficTelemetry,yaw,facing:driving?heading+Math.PI:player.rotation.y,location:state?.location||'city',cinematic:cinema?{kind:cinema.kind,progress:cinema.elapsed/cinema.duration}:null,route:routePoints,stats:{calls:renderStats.calls,triangles:renderStats.triangles,visibleChunks:visibleStaticChunks,totalChunks:staticChunks.length,renderTier:quality==='low'||adaptiveLowDetail?'low':quality,pixelRatio:renderScale,frameMS:renderElapsed,targetFPS}};
+    const info={position:[player.position.x,player.position.y,player.position.z],nearest:nearest(),driving,speed:Math.abs(speed)*3.6,modelLoaded:loaded,nativeRig:true,climbing:!!climbing,grounded:jumpV===0,securityGuards:guards.length,traffic:trafficTelemetry,yaw,facing:driving?heading+Math.PI:player.rotation.y,location:state?.location||'city',cinematic:cinema?{kind:cinema.kind,progress:cinema.elapsed/cinema.duration}:null,route:routePoints,stats:{calls:renderStats.calls,triangles:renderStats.triangles,visibleChunks:visibleStaticChunks,totalChunks:staticChunks.length,renderTier:quality==='low'||adaptiveLowDetail?'low':quality,pixelRatio:renderScale,frameMS:renderElapsed,targetFPS}};
    onTick(dt,info);const renderStart=performance.now();renderStats=presentation.render(scene,camera,{enabled:quality==='high'&&!adaptiveLowDetail&&renderScale>.85,phase:phaseOf(state||{assembled:[]}),lab:lab.visible});renderElapsed=performance.now()-renderStart;frames++;
    if(now-fpsStart>1000){const measured=Math.round(frames*1000/(now-fpsStart));onFPS(measured);frames=0;fpsStart=now;
    }
@@ -253,7 +277,7 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
   canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();gpuLost=true;onEvent('renderer.context_lost');});
   canvas.addEventListener('webglcontextrestored',()=>{gpuLost=false;last=performance.now();onEvent('renderer.context_restored');});
   canvas.addEventListener('pointerdown',e=>{if(active&&!paused&&!cinema){drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);}});canvas.addEventListener('pointermove',e=>{if(!drag)return;yaw-=(e.clientX-drag[0])*.005;pitch=T.MathUtils.clamp(pitch+(e.clientY-drag[1])*.003,-.25,.7);drag=[e.clientX,e.clientY];});for(const e of ['pointerup','pointercancel'])canvas.addEventListener(e,()=>drag=null);canvas.addEventListener('wheel',e=>{if(active){e.preventDefault();view=e.deltaY>0?1:0;}},{passive:false});addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderScale=renderProfile(quality,innerWidth,innerHeight,devicePixelRatio).scale;renderer.setPixelRatio(renderScale);frameBudget.reset();});
- return {keys,intro(v){opening=v;},hooks(tick,event){onTick=tick;onEvent=event;},working(v){working=v;},moveFor(key,duration=.45){keys.add(key);clearTimeout(timers.get(key));timers.set(key,setTimeout(()=>keys.delete(key),duration*1000));},start(pos=spawn,savedVehicle=null){active=true;cinema=null;climbing=null;ecologyPose=null;car.position.set(...(savedVehicle?.position||[parking[0],0,parking[1]]));car.rotation.y=savedVehicle?.heading??Math.PI;heading=car.rotation.y;trafficCooldown=0;trafficIndexTime=Infinity;chunkCheckTime=Infinity;trafficSnapshotAge=Infinity;lastRoutePlan=null;driving=false;speed=0;walkX=walkZ=carX=carZ=0;player.position.set(...pos);player.rotation.y=Math.PI;yaw=0;jumpV=0;setLocation(pos[1]<-10?'lab':'city');if(savedVehicle?.driving&&pos[1]>=0){driving=true;player.position.copy(car.position);}player.visible=!driving;},stop(){active=false;keys.clear();},pause(v){paused=v;keys.clear();walkX=walkZ=carX=carZ=0;speed=0;},position:()=>[player.position.x,player.position.y,player.position.z],nearest,
+ return {keys,intro(v){opening=v;},hooks(tick,event){onTick=tick;onEvent=event;},working(v){working=v;},moveFor(key,duration=.45){keys.add(key);clearTimeout(timers.get(key));timers.set(key,setTimeout(()=>keys.delete(key),duration*1000));},start(pos=spawn,savedVehicle=null){active=true;cinema=null;climbing=null;ecologyPose=null;car.position.set(...(savedVehicle?.position||[parking[0],0,parking[1]]));car.rotation.y=savedVehicle?.heading??Math.PI;heading=car.rotation.y;trafficCooldown=0;trafficIndexTime=Infinity;chunkCheckTime=Infinity;trafficSnapshotAge=Infinity;lastRoutePlan=null;carSafe=null;driving=false;speed=0;walkX=walkZ=carX=carZ=0;player.position.set(...pos);player.rotation.y=Math.PI;yaw=0;jumpV=0;setLocation(pos[1]<-10?'lab':'city');if(savedVehicle?.driving&&pos[1]>=0){driving=true;player.position.copy(car.position);}player.visible=!driving;},stop(){active=false;keys.clear();},pause(v){paused=v;keys.clear();walkX=walkZ=carX=carZ=0;speed=0;},position:()=>[player.position.x,player.position.y,player.position.z],nearest,
   update(a,next){state=a;actions=next;ecology.sync(a.tasks);updateMarkers();if(!cinema)setLocation(a.location);core.stones.forEach((m,i)=>m.visible=a.assembled.includes(i));panels.forEach((m,i)=>m.visible=a.tasks.includes('panel'+(i+1)));carry.material.color.set(stoneColors[Math.max(0,a.stone)]);carry.material.emissive.set(stoneColors[Math.max(0,a.stone)]);carryGlow.material.color.set(stoneColors[Math.max(0,a.stone)]);carry.visible=a.stone>=0;tool.visible=!!a.inventory&&a.stone<0;cargo.visible=a.tasks.includes('cargo')&&!a.tasks.includes('clinicDelivery');water.material.color.set(a.tasks.includes('valve')&&!a.tasks.includes('litter')?0x528a8d:0x4b7b7c);beam.material.opacity=0;coreLight.intensity=25+a.assembled.length*3;routeTime=2;},
    vehicleState(){return {position:[car.position.x,0,car.position.z],heading:car.rotation.y,driving};},
    navigation(){return {obstacles,yaw,heading,carPosition:[car.position.x,car.position.y,car.position.z],speed};},
@@ -264,7 +288,7 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
    ecologyPlaying(){return ecology.playing();},
    quality(q,target=90){quality=q;targetFPS=Math.min(90,Math.max(30,target));frameBudget=createFrameBudget(targetFPS);adaptiveLowDetail=false;chunkCheckTime=Infinity;renderScale=renderProfile(q,innerWidth,innerHeight,devicePixelRatio).scale;renderer.setPixelRatio(renderScale);renderer.shadowMap.enabled=false;},text(v){text=v;fpsStart=performance.now();frames=0;},jump(){const floor=state?.location==='lab'?LAB_Y:roofHeight(player.position.x,player.position.z,player.position.y);if(!driving&&!climbing&&!ecology.playing()&&!paused&&Math.abs(player.position.y-floor)<.02&&jumpV===0&&!cinema){jumpV=6;onEvent('jump');}},camera(){view=(view+1)%3;return view;},scan(){scanTime=1.5;onEvent('scanner');},
   vehicle(){if(cinema||ecology.playing()||state.location==='lab')return false;if(driving){for(const side of [1,-1]){const x=car.position.x+Math.cos(heading)*side*1.8,z=car.position.z-Math.sin(heading)*side*1.8;if(!collision(x,z)){driving=false;player.position.set(x,0,z);player.visible=true;speed=0;return true;}}return false;}if(player.position.distanceTo(car.position)<3.8){driving=true;carX=carZ=walkX=walkZ=0;heading=car.rotation.y;keys.clear();return true;}return false;},
-  climb(){if(climbing||cinema||driving||ecology.playing())return;keys.clear();jumpV=0;const up=player.position.y<6;walkX=walkZ=0;onEvent('ladder_climb');climbing={from:player.position.clone(),to:new T.Vector3(up?-103:-99,up?9:0,up?-73:-69.8),elapsed:0};},
+  climb(){if(climbing||cinema||driving||ecology.playing())return;keys.clear();jumpV=0;const up=player.position.y<6;walkX=walkZ=0;onEvent('ladder_climb');climbing={from:player.position.clone(),start:new T.Vector3(-99,up?0:9,-71),end:new T.Vector3(-99,up?9:0,-71),to:new T.Vector3(up?-103:-99,up?9:0,up?-73:-69.8),elapsed:0,duration:6};},
   elevator(down){if(cinema)return Promise.reject(Error('Busy'));if(driving&&!this.vehicle())return Promise.reject(Error('Vehicle exit blocked'));climbing=null;jumpV=0;keys.clear();player.visible=true;return new Promise(done=>{cinema={kind:'elevator',entry:player.position.clone(),cameraFrom:camera.position.clone(),lookFrom:camera.getWorldDirection(new T.Vector3()).multiplyScalar(5).add(camera.position),from:down?0:LAB_Y,to:down?LAB_Y:0,elapsed:0,duration:6.5,done};onEvent('elevator.start');});},
   async assemble(index){await modelPromise;if(cinema)throw Error('Busy');player.visible=true;keys.clear();return new Promise(done=>{cinema={kind:'handover',index,elapsed:0,duration:16,from:player.localToWorld(new T.Vector3(.35,1.05,.1)).sub(labOffset),done};onEvent('handover.start',{index});});},
   activate(ending){keys.clear();coreLight.color.set(ending==='critical'?0xff765b:0x80efd8);core.plasma.material.emissive.copy(coreLight.color);return new Promise(done=>{cinema={kind:'finale',elapsed:0,duration:5,done};});},dispose(){surfaceFX.dispose();presentation.dispose();ecology.dispose();for(const actor of actors)actor.mixer.stopAllAction();const resources=new Set();scene.traverse(m=>{if(m.geometry)resources.add(m.geometry);for(const material of m.material?(Array.isArray(m.material)?m.material:[m.material]):[]){resources.add(material);for(const v of Object.values(material))if(v?.isTexture)resources.add(v);}});if(scene.environment)resources.add(scene.environment);for(const resource of resources)resource.dispose();renderer.dispose();}

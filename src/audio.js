@@ -1,7 +1,7 @@
-export function audio(){let ctx,master,ambientGain,timer,enabled=false,volume=.35,step=0;
+export function audio(){let ctx,master,ambientGain,timer,enabled=false,volume=.8,step=0;
  const scales=[[110,164.81,220,329.63],[146.83,293.66,440,587.33],[130.81,196,261.63,392],[174.61,261.63,349.23,523.25],[123.47,185,246.94,369.99]];
  let currentAmbient='none',engineOsc=null,engineGainNode=null,engineFilter=null;
- function ensureCtx(){if(!ctx){ctx=new AudioContext();master=ctx.createGain();master.connect(ctx.destination);ambientGain=ctx.createGain();ambientGain.gain.value=.45;ambientGain.connect(master);}}
+ function ensureCtx(){if(!ctx){ctx=new AudioContext();master=ctx.createGain();const limiter=ctx.createDynamicsCompressor();limiter.threshold.value=-12;limiter.ratio.value=6;master.connect(limiter);limiter.connect(ctx.destination);ambientGain=ctx.createGain();ambientGain.gain.value=.45;ambientGain.connect(master);}}
  function tone(hz,duration=.5,gain=.2,type='sine',delay=0,endHz=hz,pan=0,endPan=pan){if(!ctx||!enabled)return;const at=ctx.currentTime+delay,o=ctx.createOscillator(),g=ctx.createGain(),p=ctx.createStereoPanner();o.type=type;o.frequency.setValueAtTime(hz,at);o.frequency.exponentialRampToValueAtTime(Math.max(20,endHz),at+duration);g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(Math.max(.001,gain),at+.025);g.gain.exponentialRampToValueAtTime(.0001,at+duration);p.pan.setValueAtTime(pan,at);p.pan.linearRampToValueAtTime(endPan,at+duration);o.connect(g).connect(p).connect(master);o.start(at);o.stop(at+duration+.03);o.onended=()=>{o.disconnect();g.disconnect();p.disconnect();};}
  function noise(duration=.25,gain=.08,filterHz=1200,delay=0,filterType='lowpass'){if(!ctx||!enabled)return;const n=ctx.createBufferSource(),b=ctx.createBuffer(1,Math.floor(ctx.sampleRate*duration),ctx.sampleRate);const d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);n.buffer=b;const f=ctx.createBiquadFilter(),g=ctx.createGain();f.type=filterType;f.frequency.value=filterHz;g.gain.value=gain;n.connect(f).connect(g).connect(master);n.start(ctx.currentTime+delay);n.onended=()=>{n.disconnect();f.disconnect();g.disconnect();};}
 
@@ -34,8 +34,10 @@ export function audio(){let ctx,master,ambientGain,timer,enabled=false,volume=.3
  function stopEngineSound(){if(!engineOsc)return;try{engineGainNode.gain.setTargetAtTime(0,ctx.currentTime,.1);const n=engineOsc;setTimeout(()=>{try{n.stop();}catch{}},220);}catch{}engineOsc=null;engineGainNode=null;engineFilter=null;}
 
  function scoreLoop(){tick();timer=setTimeout(scoreLoop,heat>70?480:800);}
- function tick(){if(document.hidden)return;const scale=scales[phase],base=scale[Math.floor(step/4)%4];tone(base,3,.06,'sine');tone(base*2,2,.035,'triangle');tone(scale[step%4]*2,.8,.025,'sine',0,undefined,Math.sin(step));if(heat>70){tone(base*1.05946,.35,.025,'triangle');tone(base*1.4142,.22,.02,'sine',.3);}step++;}
- return {async toggle(){ensureCtx();await ctx.resume();enabled=!enabled;master.gain.setTargetAtTime(enabled?volume:0,ctx.currentTime,.08);if(enabled){scoreLoop();}else{clearTimeout(timer);killAmbient();stopEngineSound();}return enabled;},enabled:()=>enabled,volume(v){volume=v;if(master)master.gain.value=enabled?v:0;},
+ function tick(){if(document.hidden||currentAmbient==='none')return;const scale=scales[phase],base=scale[Math.floor(step/4)%4];tone(base,3,.06,'sine');tone(base*2,2,.035,'triangle');tone(scale[step%4]*2,.8,.025,'sine',0,undefined,Math.sin(step));if(heat>70){tone(base*1.05946,.35,.025,'triangle');tone(base*1.4142,.22,.02,'sine',.3);}if(step%2===0){tone(80,.18,.13,'sine',0,35);noise(.04,.035,6500,.4,'highpass');}else noise(.1,.055,1700,.05,'highpass');step++;}
+ return {async toggle(){ensureCtx();await ctx.resume();enabled=!enabled;master.gain.setTargetAtTime(enabled?volume:0,ctx.currentTime,.08);if(enabled){scoreLoop();}else{clearTimeout(timer);globalThis.speechSynthesis?.cancel();killAmbient();stopEngineSound();}return enabled;},enabled:()=>enabled,volume(v){volume=v;if(master)master.gain.value=enabled?v:0;},
+  speak(text,who){if(!enabled||document.hidden||!globalThis.speechSynthesis)return;const utterance=new SpeechSynthesisUtterance(text.replace(/^[^:]{1,20}:\s*/,''));utterance.lang=document.documentElement.lang==='hi'?'hi-IN':'en-IN';utterance.rate=1.04;utterance.pitch={asha:1.15,kabir:.88,meera:1.04,dadi:.95}[who]||1;utterance.volume=Math.min(1,volume);speechSynthesis.cancel();speechSynthesis.speak(utterance);},
+  silence(){globalThis.speechSynthesis?.cancel();},
   scene:sceneAudio,
   ambient(type){setAmbient(type);},
   engineLoop(speed){if(!engineOsc)startEngine();updateEngine(speed);},
@@ -51,7 +53,7 @@ export function audio(){let ctx,master,ambientGain,timer,enabled=false,volume=.3
   else if(kind==='scanner'){tone(200,.5,.13,'sine',0,1200);tone(1200,.2,.08,'sine',.55,1200);}
   else if(kind==='plant'){noise(.35,.08,450);tone(230,.42,.09,'triangle',.1,165);tone(330,.63,.07,'sine',.55,440);tone(493.88,.65,.08,'sine',1.3,659.25);}
   else if(kind==='water'){for(let i=0;i<9;i++){noise(.21,.027,1600+i*70,i*.18);tone(330+i*23,.16,.025,'sine',i*.18,260+i*25);}tone(220,1.8,.055,'sine',.2,340);}
-  else if(kind==='footstep')noise(.07,.018,350);
+  else if(kind==='footstep'||kind==='runstep'){noise(.09,kind==='runstep'?.10:.075,650);tone(85,.06,.045,'sine',0,45);}
   else if(kind==='vehicle'){tone(80,.35,.15,'sawtooth',0,160);noise(.15,.04,800,.05);}
   else if(kind==='reactor'){[55,110,220,330,440,660].forEach((f,i)=>tone(f,5,.12,'sine',i*.18,f*1.01));noise(2,.1,700);}
   else if(kind==='error'){tone(130,.4,.16,'triangle',0,80);tone(100,.4,.12,'triangle',.45,60);}
@@ -79,5 +81,5 @@ export function audio(){let ctx,master,ambientGain,timer,enabled=false,volume=.3
   else if(kind==='spark'){for(let i=0;i<6;i++){tone(2800+Math.random()*2200,.04,.025,'sine',i*.035);noise(.03,.015,7000,i*.035);}}
   else if(kind==='click'){tone(680,.05,.04,'sine',0,880);}
   else tone(540,.15,.07,'sine',0,740);
- },suspend(){ctx?.suspend();},resume(){if(enabled)ctx?.resume();}};
+ },suspend(){globalThis.speechSynthesis?.cancel();ctx?.suspend();},resume(){if(enabled)ctx?.resume();}};
 }
