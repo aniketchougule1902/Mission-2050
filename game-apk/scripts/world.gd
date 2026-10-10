@@ -335,7 +335,7 @@ func blocked(at: Vector3, underground: bool, stage: int) -> bool:
 				valid = true
 			var rel := p.dot(c) / maxf(c.length_squared(),1.0)
 			var projected: Vector2 = c * clampf(rel,0.0,1.0)
-			if p.distance_to(projected) < 15.0:
+			if p.distance_to(projected) < 32.0:
 				valid = true
 		if not valid:
 			return true
