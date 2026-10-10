@@ -61,6 +61,8 @@ try{
  const side=await page.evaluate(()=>window.mission2050.snapshot());
  assert.ok(Math.abs(Math.atan2(Math.sin(side.facing-Math.PI),Math.cos(side.facing-Math.PI)))<.15,'Sidestep rotated the character');
  await page.locator('#minimapToggle').click();await page.locator('#bigmap').waitFor();
+ const mapTitleBounds=await page.locator('#paneltitle').boundingBox();
+ assert.ok(mapTitleBounds.y>=0&&mapTitleBounds.y+mapTitleBounds.height<=720,'Expanded map title left the viewport');
  assert.equal(await page.locator('.compass-mark').count(),181);
  await page.locator('#bigmap').click({position:{x:100,y:100}});
  await page.screenshot({path:'game-tactical-map.png'});
