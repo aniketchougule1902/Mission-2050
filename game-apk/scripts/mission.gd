@@ -215,9 +215,9 @@ func _setup_hud() -> void:
 	joystick.offset_bottom = -27
 	hud.add_child(joystick)
 	_hud_button("ACT",22,42,121,104).pressed.connect(_do_interaction)
-	_hud_button("RUN",155,39,100,77).button_down.connect(func() -> void: run_held = true)
-	var run_button := hud.get_child(hud.get_child_count()-1) as Button
-	run_button.button_up.connect(func() -> void: run_held = false)
+	var run_button := _hud_button("RUN",155,39,100,77)
+	run_button.button_down.connect(_run_down)
+	run_button.button_up.connect(_run_up)
 	_hud_button("DRIVE",25,164,100,63).pressed.connect(_toggle_drive)
 	_hud_button("CAM",137,164,100,63).pressed.connect(_cycle_camera)
 	_hud_button("PAUSE",16,616,104,56).pressed.connect(_toggle_pause)
@@ -266,10 +266,20 @@ func _show_menu() -> void:
 	var fresh := Button.new()
 	fresh.text = "NEW ADVENTURE (RESET SAVE)"
 	fresh.custom_minimum_size.y = 60
-	fresh.pressed.connect(func() -> void: _new_game(); _resume_game())
+	fresh.pressed.connect(_reset_and_play)
 	box_layout.add_child(fresh)
 	var hints := _text(box_layout,"Touch: left joystick to move, swipe right side to rotate camera.\nACT to interact • DRIVE near the electric car • RUN to sprint.\nKeyboard: WASD, E, F, Shift, Space, C, Esc.",16,Color("#b4d4dc"))
 	hints.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+func _run_down() -> void:
+	run_held = true
+
+func _run_up() -> void:
+	run_held = false
+
+func _reset_and_play() -> void:
+	_new_game()
+	_resume_game()
 
 func _resume_game() -> void:
 	menu_open = false
