@@ -36,3 +36,5 @@ body[data-screen=city] .missionbox,body[data-screen=city] .meters,body[data-scre
 
 #navturn{grid-column:1/4}.missionbox.expanded{max-height:45vh;overflow:auto}.missionbox.expanded #queststeps{max-height:none;overflow:visible}.missionbox.expanded .queststep.done{display:flex}
 #compassTape span{text-align:center}#questToggle{pointer-events:auto}
+
+body[data-screen=map] #hud{z-index:4}body[data-screen=map] #hud>*{visibility:hidden}body[data-screen=map] #hud>#minimapToggle{visibility:visible}

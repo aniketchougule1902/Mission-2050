@@ -181,7 +181,7 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
     if(moved.hit){const slide=reflectVelocity(walkX,walkZ,moved.nx,moved.nz,0);walkX=slide.x;walkZ=slide.z;}
     if(!areaUnlocked(moved.x+targetX*dt,moved.z+targetZ*dt,phaseOf(state))&&state.location==='city'&&!blockTime){onEvent('district.locked');blockTime=2;}
     if(distanceMoved>.001){player.rotation.y=dampAngle(player.rotation.y,yaw+Math.PI,dt);walking=true;gaitPhase+=distanceMoved*(running?6:7);footTime+=dt;}
-    if(footTime>(running?.28:.46)){onEvent('footstep');if(state.location==='city'&&(Math.hypot(player.position.x-112,player.position.z+109)<70))surfaceFX.emit('dust',player.position.x,player.position.y+.05,player.position.z);if(state.location==='city'&&Math.abs(player.position.x-231)<5)surfaceFX.emit('water',player.position.x,.1,player.position.z);footTime=0;}
+    if(jumpV===0&&footTime>(running?.28:.46)){onEvent('footstep');if(state.location==='city'&&(Math.hypot(player.position.x-112,player.position.z+109)<70))surfaceFX.emit('dust',player.position.x,player.position.y+.05,player.position.z);if(state.location==='city'&&Math.abs(player.position.x-231)<5)surfaceFX.emit('water',player.position.x,.1,player.position.z);footTime=0;}
     const floor=state.location==='lab'?LAB_Y:roofHeight(player.position.x,player.position.z,player.position.y);
     // Small support changes follow the floor; taller roof transitions use the ladder.
     if(!jumpV&&Math.abs(player.position.y-floor)<.3)player.position.y=floor;
@@ -212,12 +212,13 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
     }
    }
   // Apply steps on this model's own bones, after native clips have sampled.
-  if(hero&&(climbing||walking&&Math.abs(moveSide)>.1)){
+  if(hero&&(climbing||jumpV!==0||walking&&Math.abs(moveSide)>.1)){
    const cycle=climbing?climbing.elapsed*5:gaitPhase;
    for(const [side,offset] of [['Left',0],['Right',Math.PI]]){
     const wave=Math.sin(cycle+offset),bend=Math.max(0,wave);
     const pose=(part,x,z=0)=>{const name=side+part,b=hero.bones[name],r=hero.rest[name];if(b&&r){b.rotation.copy(r);b.rotation.x+=x;b.rotation.z+=z;}};
     if(climbing){pose('UpLeg',-.65*bend);pose('Leg',.9*bend);pose('Arm',-2.35+.25*wave);pose('ForeArm',-.45-.3*bend);}
+    else if(jumpV!==0){pose('UpLeg',-.22);pose('Leg',.42);pose('Arm',-.3,side==='Left'?-.15:.15);}
     else{pose('UpLeg',-.32*moveForward*wave,.32*moveSide*wave);pose('Leg',.35*bend);}
    }
   }
@@ -249,15 +250,15 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
      const visible=chunkVisible(player.position.x,player.position.z,chunk.x,chunk.z,chunk.radius,chunk.detail?Math.min(renderProfile(quality).detailDistance,distance):distance);
      chunk.mesh.visible=visible;if(visible)visibleStaticChunks++;
     }
-   }
     decorations.forEach(m=>{
      const near=chunkVisible(player.position.x,player.position.z,m.position.x,m.position.z,m.userData.radius||0,38);
      const distance=m.userData.foliage?230:renderDistance(quality,adaptiveLowDetail);
      m.visible=city.visible&&chunkVisible(player.position.x,player.position.z,m.position.x,m.position.z,m.userData.radius||0,distance)&&
       (!m.userData.foliageDetail||near)&&(!m.userData.foliageProxy||!m.userData.detailReady||!near);
     });
+   }
    traffic.forEach(t=>{t.model.visible=city.visible&&Math.abs(t.model.position.z-player.position.z)<125;});
-  if(active){sun.target.position.copy(player.position);sun.position.set(player.position.x-45,75,player.position.z+30);routeTime+=dt;if(routeTime>1.5){routeTime=0;rebuildRoute();}}bread.visible=active&&!cinema&&!climbing;const target=active?nearest():null;waypoint.visible=!!target&&!cinema&&state?.location==='city';if(target){waypoint.position.set(target.x,target.y+9,target.z);waypoint.material.opacity=reduced?.12:.12+Math.sin(time*2)*.03;}bread.material.opacity=reduced?.8:.7+Math.sin(time*3)*.1;if(bread.visible&&!reduced){for(let i=0;i<bread.count;i++){const p=breadCoords[i];if(!p)continue;breadPose.position.set(p[0],breadcrumbFloor(p)+.12,p[1]);breadPose.updateMatrix();bread.setMatrixAt(i,breadPose.matrix);}bread.instanceMatrix.needsUpdate=true;}
+  if(active){sun.target.position.copy(player.position);sun.position.set(player.position.x-45,75,player.position.z+30);routeTime+=dt;if(routeTime>1.5){routeTime=0;rebuildRoute();}}bread.visible=active&&!cinema&&!climbing;const target=active?nearest():null;waypoint.visible=!!target&&!cinema&&state?.location==='city';if(target){waypoint.position.set(target.x,target.y+9,target.z);waypoint.material.opacity=reduced?.12:.12+Math.sin(time*2)*.03;}bread.material.opacity=reduced?.8:.7+Math.sin(time*3)*.1;
   contact.position.set(player.position.x,breadcrumbFloor([player.position.x,player.position.z])+.09,player.position.z);contact.visible=active&&!driving;
    trafficSnapshotAge+=dt;
     if(trafficSnapshotAge>=.2){trafficSnapshotAge=0;

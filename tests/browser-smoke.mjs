@@ -61,7 +61,7 @@ try{
  const side=await page.evaluate(()=>window.mission2050.snapshot());
  assert.ok(Math.abs(Math.atan2(Math.sin(side.facing-Math.PI),Math.cos(side.facing-Math.PI)))<.15,'Sidestep rotated the character');
  await page.locator('#minimapToggle').click();await page.locator('#bigmap').waitFor();
- await page.locator('[data-action="city"]').click();assert.equal((await page.evaluate(()=>window.mission2050.snapshot())).screen,'city');
+ await page.locator('#minimapToggle').click();assert.equal((await page.evaluate(()=>window.mission2050.snapshot())).screen,'city');
  // Sustained render check: catch context loss, memory pressure and late asset exceptions.
  await page.waitForTimeout(20000);
  const snapshot=await page.evaluate(()=>window.mission2050.snapshot());
