@@ -1,10 +1,10 @@
 extends Node3D
 # Native Godot 4 3D application; no HTTP requests, embedded browser or online assets.
-const SAVE_FILE := "user://mission2050_native_v1.json"
+const SAVE_FILE = "user://mission2050_native_v1.json"
 const WORLD_SCRIPT = preload("res://scripts/world.gd")
 const JOYSTICK_SCRIPT = preload("res://scripts/joystick.gd")
-const COSTS := {"buses":50,"cycling":20,"backup":15,"training":15,"roads":35,"petrol":30}
-const STAGES := ["Power & Health","Solar Rooftops","Rewilding","Clean River","Resilient Transport"]
+const COSTS = {"buses":50,"cycling":20,"backup":15,"training":15,"roads":35,"petrol":30}
+const STAGES = ["Power & Health","Solar Rooftops","Rewilding","Clean River","Resilient Transport"]
 
 var world: MissionWorld
 var player: CharacterBody3D
@@ -15,7 +15,7 @@ var left_arm: Node3D
 var right_arm: Node3D
 var camera: Camera3D
 var van: Node3D
-var joystick: Control
+var joystick
 var hud: Control
 var ui_layer: CanvasLayer
 var menu: PanelContainer
@@ -695,7 +695,7 @@ func _toggle_pause() -> void:
 		_notify("Mission resumed.")
 
 func _show_map() -> void:
-	var names := " → ".join(STAGES)
+	var names := " → ".join(PackedStringArray(STAGES))
 	_notify("DISTRICTS: "+names+" | Active: "+STAGES[stage])
 
 func _notify(message: String) -> void:
