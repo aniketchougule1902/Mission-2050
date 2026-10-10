@@ -25,6 +25,21 @@ jobs:
     steps:
       - name: Checkout current native source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      # The godot-ci image stores SDK credentials and templates under /root.
+      # GitHub Actions overrides HOME to /github/home, so Godot otherwise
+      # silently loses its Android/JDK/export configuration.
+      - name: Restore Godot Android templates and SDK settings
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.local/share/godot/export_templates" "$HOME/.config/godot"
+          cp -a /root/.local/share/godot/export_templates/4.4.1.stable "$HOME/.local/share/godot/export_templates/"
+          cp -a /root/.config/godot/. "$HOME/.config/godot/"
+          test -s "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_debug.apk"
+          test -f "$HOME/.config/godot/editor_settings-4.4.tres"
+          test -s /root/debug.keystore
+          test -d /usr/lib/android-sdk
+          test -d /usr/lib/jvm/java-17-openjdk-amd64
       - name: Parse scripts and import procedural project
         run: godot --headless --editor --path game-apk --quit
       - name: Exercise playable scene, graphics nodes and garden transitions
@@ -36,7 +51,7 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/build/native"
           godot --headless --path game-apk --export-debug "Android" "$GITHUB_WORKSPACE/build/native/Mission2050-debug.apk"
           test -s "$GITHUB_WORKSPACE/build/native/Mission2050-debug.apk"
-          file "$GITHUB_WORKSPACE/build/native/Mission2050-debug.apk"
+          unzip -t "$GITHUB_WORKSPACE/build/native/Mission2050-debug.apk" | tail -2
       - name: Upload Android APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
