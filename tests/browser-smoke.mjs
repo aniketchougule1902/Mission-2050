@@ -58,6 +58,9 @@ try{
  console.log('20-second browser soak',JSON.stringify({fps,from:before.position,to:snapshot.position}));
  assert.ok(snapshot.renderStats.calls>0,'No 3D draw calls');
  assert.ok(snapshot.renderStats.triangles>0,'No geometry rendered');
+ assert.ok(snapshot.renderStats.totalChunks>0,'No instanced city facade chunks');
+ assert.ok(snapshot.renderStats.visibleChunks>0,'Nearby facades disappeared');
+ assert.ok(snapshot.renderStats.visibleChunks<=snapshot.renderStats.totalChunks,'Invalid chunk counts');
  assert.ok(snapshot.securityGuards===6,'Research security models missing');
  assert.ok(snapshot.traffic.length===8,'Traffic did not spawn');
  assert.equal(snapshot.nativeRig,true,'Native character rig is not ready');
