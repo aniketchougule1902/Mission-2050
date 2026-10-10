@@ -6,7 +6,8 @@ config_version=5
 config/name="Mission 2050 - Aakhri Saans"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
-config/description="An offline third-person climate adventure."\nrun/low_processor_mode=false
+config/description="An offline third-person climate adventure."
+run/low_processor_mode=false
 
 [display]
 window/size/viewport_width=1280
