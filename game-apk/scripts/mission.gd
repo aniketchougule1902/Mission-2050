@@ -776,7 +776,8 @@ func _process(delta: float) -> void:
 	else:
 		appearance.position.y = 0
 	var look := player.position + Vector3(0,1.4,0)
-	var wanted := look + Vector3(sin(camera_yaw)*camera_distance,3.6 if not in_lab else 2.8,cos(camera_yaw)*camera_distance)
+	var camera_height := 0.0 if camera_distance < 1.0 else (2.8 if in_lab else 3.6)
+	var wanted := look + Vector3(sin(camera_yaw)*camera_distance,camera_height,cos(camera_yaw)*camera_distance)
 	camera.position = camera.position.lerp(wanted,clampf(delta*7.5,0,1))
 	camera.look_at(look,Vector3.UP)
 	if notice_seconds > 0.0:
