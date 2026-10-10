@@ -61,7 +61,19 @@ try{
  const side=await page.evaluate(()=>window.mission2050.snapshot());
  assert.ok(Math.abs(Math.atan2(Math.sin(side.facing-Math.PI),Math.cos(side.facing-Math.PI)))<.15,'Sidestep rotated the character');
  await page.locator('#minimapToggle').click();await page.locator('#bigmap').waitFor();
+ assert.equal(await page.locator('.compass-mark').count(),181);
+ await page.locator('#bigmap').click({position:{x:100,y:100}});
+ await page.screenshot({path:'game-tactical-map.png'});
  await page.locator('#minimapToggle').click();assert.equal((await page.evaluate(()=>window.mission2050.snapshot())).screen,'city');
+ await page.waitForFunction(()=>document.querySelector('#compassWaypoint').classList.contains('custom-pin'));
+ await page.locator('#minimapToggle').click();await page.locator('#clearMapPin').click();await page.keyboard.press('m');
+ await page.waitForFunction(()=>!document.querySelector('#compassWaypoint').classList.contains('custom-pin'));
+ await page.setViewportSize({width:390,height:844});await page.waitForTimeout(300);
+ const hudBounds=await page.evaluate(()=>{const c=document.querySelector('#compass').getBoundingClientRect(),m=document.querySelector('#minimapToggle').getBoundingClientRect();return {compass:{x:c.x,y:c.y,right:c.right},map:{x:m.x,y:m.y,right:m.right}};});
+ assert.ok(hudBounds.compass.x>=0&&hudBounds.compass.right<=390);assert.ok(hudBounds.map.x>=0&&hudBounds.map.right<=390);
+ await page.screenshot({path:'game-phone-navigation.png'});
+ await page.setViewportSize({width:1280,height:720});
+ await page.keyboard.press('m');await page.locator('#bigmap').waitFor();await page.keyboard.press('m');assert.equal((await page.evaluate(()=>window.mission2050.snapshot())).screen,'city');
  // Sustained render check: catch context loss, memory pressure and late asset exceptions.
  await page.waitForTimeout(20000);
  const snapshot=await page.evaluate(()=>window.mission2050.snapshot());
