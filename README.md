@@ -1,5 +1,5 @@
 # Mission 2050 - Adventure V3
-
+ 
 Play Asha's five-level climate adventure across Suryanagar. Recover a stone in each district, return to the research entrance, descend 24 metres by animated elevator, and hand the stone to Dr. Meera. She carries it around the reactor, fits it into its magnetic socket, and activates the next district.
 
 ## Play on this computer
