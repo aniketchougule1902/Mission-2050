@@ -12,4 +12,3 @@ addTranslations({
  'adv.controls':'WASD / arrows · move | S · backpedal | A / D · sidestep | Shift · run | drag · look | E · work | M · map',
  'help.default':'Follow the coloured route on the map and the compass arrow. Tap an activity on the map to track it. Hold E when the interaction prompt appears.'
 },{'help.default':'नक्शे पर रंगीन मार्ग और कंपास के तीर का अनुसरण करें। उपकरण के पास E दबाएँ।','adv.surfaceArrival':'सतह पर वापस आए। अगले काम के लिए नक्शे के मार्ग और कंपास के तीर का अनुसरण करें।'});
-

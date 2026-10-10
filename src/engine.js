@@ -233,7 +233,7 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
     const pose=(part,x,z=0,weight=1)=>{const name=side+part,b=hero.bones[name],r=hero.rest[name];if(b&&r){b.rotation.x+=(r.x+x-b.rotation.x)*weight;b.rotation.y+=(r.y-b.rotation.y)*weight;b.rotation.z+=(r.z+z-b.rotation.z)*weight;}};
     if(climbing){pose('UpLeg',-.65*bend);pose('Leg',.9*bend);pose('Arm',-2.35+.25*wave);pose('ForeArm',-.45-.3*bend);}
     else if(jumpV!==0){pose('UpLeg',-.22);pose('Leg',.42);pose('Arm',-.3,side==='Left'?-.15:.15);}
-    else{const step=lateralStep(cycle,moveSide,moveForward,side==='Left'),weight=Math.min(1,Math.abs(moveSide)*1.5);pose('UpLeg',step.hipX,step.hipZ,weight);pose('Leg',step.knee,0,weight);pose('Arm',step.armX,step.armZ,weight);pose('ForeArm',-.16*Math.abs(moveSide),0,weight);}
+    else{const step=lateralStep(cycle,moveSide,moveForward,side==='Left'),weight=Math.min(1,Math.abs(moveSide)*1.5);pose('UpLeg',step.hipX,step.hipZ,weight);pose('Leg',step.knee,0,weight);const arm=hero.bones[side+'Arm'];if(arm){arm.rotation.x+=step.armX*weight;arm.rotation.z+=step.armZ*weight;}}
    }
   }
   if(climbing&&!paused){climbing.elapsed+=dt;const c=climbing,p=Math.min(1,c.elapsed/c.duration);

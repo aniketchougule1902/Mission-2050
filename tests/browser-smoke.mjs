@@ -131,6 +131,9 @@ try{
  assert.ok(ecologyResults.watered&&ecologyResults.grown&&ecologyResults.waterParticles,'Sapling planting and water spray failed');
  assert.deepEqual(pageErrors,[],'Ecology effects caused JS exceptions');
  console.log('Ecology render/timing test passed',JSON.stringify(ecologyResults));
+ // Realign after the held-strafe screenshot using actual movement controls.
+ const alignment=await page.evaluate(()=>window.mission2050.snapshot().position[0]);
+ if(Math.abs(alignment-24)>.25){const key=alignment>24?'a':'d';await page.keyboard.down(key);try{await page.waitForFunction(()=>Math.abs(window.mission2050.snapshot().position[0]-24)<.3,null,{timeout:15000});}finally{await page.keyboard.up(key);}}
  // Physical elevator round trip using real movement and interaction controls.
  await page.keyboard.down('w');
  try{await page.waitForFunction(()=>window.mission2050.snapshot().nearest?.id==='lift'&&window.mission2050.snapshot().nearest.distance<2,{timeout:45000});}

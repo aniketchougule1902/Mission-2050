@@ -3,7 +3,7 @@ export function navigationGoal(actions,position,selection,location='city'){
  if(selection?.location===location){
   if(!selection.actionId)return {...selection,id:'map-pin',key:'nav.pin',kind:'pin',y:position.y};
   const chosen=actions.find(a=>a.id===selection.actionId);
-  if(chosen){const ladder=actions.find(a=>a.id==='ladder');if(location==='city'&&position.y<6&&chosen.y>6&&ladder)return ladder;return chosen;}
+  if(chosen){const ladder=actions.find(a=>a.id==='ladder');if(location==='city'&&position.y<6&&chosen.y>6&&ladder)return ladder;return chosen.id==='ladder'&&position.y>6?{...chosen,x:-103,z:-73,y:9}:chosen;}
  }
  const ladder=actions.find(a=>a.id==='ladder');
  const tasks=actions.filter(a=>!['lift','brief','ladder'].includes(a.id));
