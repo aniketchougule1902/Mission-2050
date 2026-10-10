@@ -189,8 +189,10 @@ func _build_city() -> void:
 		for arm in range(4):
 			var a: float = float(arm) * TAU / 4.0
 			box(city,Vector3(p.x + sin(a) * 10.5,1.5,p.y + cos(a) * 10.5),Vector3(1,3,1),STONE_COLORS[i])
-	box(city,Vector3(24,1.8,32),Vector3(8,3.6,6),Color("#273f4b"),0.5)
-	box(city,Vector3(24,4.0,32),Vector3(9,0.7,7),Color("#58b1b7"),0.4)
+	for sx in [-3.7,3.7]:
+		box(city,Vector3(24+sx,1.75,32),Vector3(0.6,3.5,6),Color("#273f4b"),0.5)
+	box(city,Vector3(24,3.7,32),Vector3(9,0.7,7),Color("#58b1b7"),0.4)
+	box(city,Vector3(24,1.4,35),Vector3(8,2.8,0.4),Color("#273f4b"),0.5)
 	for i in range(8):
 		var auto := Node3D.new()
 		auto.name = "Traffic"
