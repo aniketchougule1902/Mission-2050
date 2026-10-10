@@ -308,6 +308,7 @@ func _new_game() -> void:
 	van.position = Vector3(14,0,34)
 	world.set_in_lab(false)
 	world.install_stones(0)
+	world.restore_gardens(tasks)
 	_build_actions()
 	_save_game()
 
@@ -359,6 +360,7 @@ func _load_save() -> void:
 	player.position = Vector3(x,-23.88 if in_lab else 0.12,z)
 	world.set_in_lab(in_lab)
 	world.install_stones(assembled)
+	world.restore_gardens(tasks)
 	cached_save = d
 
 func _action(id: String, title: String, x: float, z: float, kind: String = "work") -> Dictionary:
@@ -538,6 +540,17 @@ func _do_interaction() -> void:
 		tasks["power"] = true
 		tasks[a.id] = true
 		_notify("Power plan applied: "+a.label)
+	elif a.id in ["housing1","housing2","water1","water2"]:
+		busy = true
+		_notify("Watering saplings…" if a.id.begins_with("water") else "Planting a native tree…")
+		var finished: bool = await world.play_ecology(a.id,right_arm)
+		busy = false
+		if not finished:
+			_notify("Garden animation interrupted; try again.")
+			return
+		tasks[a.id] = true
+		_notify("Sapling watered and grown!" if a.id.begins_with("water") else "Native tree planted!")
+		world.restore_gardens(tasks)
 	elif a.id == "grove" or a.id == "clear":
 		tasks["grove"] = true
 		tasks[a.id] = true
