@@ -56,7 +56,7 @@ try{
  assert.match(await page.locator('#compassHeading').textContent(),/\d+°/);
  const facing=await page.evaluate(()=>window.mission2050.snapshot().position);
  await page.keyboard.down('d');
- try{await page.waitForFunction(start=>window.mission2050.snapshot().position[0]>start[0]+.08,facing,{timeout:8000});}
+ try{await page.waitForFunction(start=>window.mission2050.snapshot().position[0]>start[0]+.08,facing,{timeout:8000});await page.screenshot({path:'game-strafe-right.png'});}
  finally{await page.keyboard.up('d');}
  const side=await page.evaluate(()=>window.mission2050.snapshot());
  assert.ok(Math.abs(Math.atan2(Math.sin(side.facing-Math.PI),Math.cos(side.facing-Math.PI)))<.15,'Sidestep rotated the character');
@@ -70,6 +70,14 @@ try{
  await page.waitForFunction(()=>document.querySelector('#compassWaypoint').classList.contains('custom-pin'));
  await page.locator('#minimapToggle').click();await page.locator('#clearMapPin').click();await page.keyboard.press('m');
  await page.waitForFunction(()=>!document.querySelector('#compassWaypoint').classList.contains('custom-pin'));
+ await page.waitForFunction(()=>window.mission2050.snapshot().navigationTarget?.id==='fuse'&&window.mission2050.snapshot().routeStatus==='ready');
+ await page.keyboard.press('m');await page.locator('[data-map-action="fuse"]').click();
+ await page.screenshot({path:'game-selected-activity-route.png'});await page.keyboard.press('m');
+ await page.waitForFunction(()=>document.querySelector('#compassWaypoint').classList.contains('custom-pin')&&window.mission2050.snapshot().navigationTarget?.id==='fuse');
+ assert.equal(await page.locator('#compassWaypoint span').textContent(),'▼');
+ assert.ok((await page.evaluate(()=>window.mission2050.snapshot())).route.length>=2,'Selected activity has no walkable route');
+ await page.keyboard.press('m');await page.locator('#clearMapPin').click();await page.keyboard.press('m');
+
  await page.setViewportSize({width:390,height:844});await page.waitForTimeout(300);
  const hudBounds=await page.evaluate(()=>{const c=document.querySelector('#compass').getBoundingClientRect(),m=document.querySelector('#minimapToggle').getBoundingClientRect();return {compass:{x:c.x,y:c.y,right:c.right},map:{x:m.x,y:m.y,right:m.right}};});
  assert.ok(hudBounds.compass.x>=0&&hudBounds.compass.right<=390);assert.ok(hudBounds.map.x>=0&&hudBounds.map.right<=390);

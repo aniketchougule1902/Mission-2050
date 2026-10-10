@@ -11,7 +11,7 @@ test('Unreachable city routes have a strict expansion budget',()=>{
   return Math.abs(x)>64||Math.abs(z)>64;
  });
  assert.ok(visits<15000,`A* spent ${visits} collision checks on one route`);
- assert.deepEqual(result,[[0,0],[260,260]]);
+ assert.deepEqual(result,[],'Unreachable destinations must not draw routes through walls');
 });
 
 test('Reachable routes still detour around solid footprints',()=>{

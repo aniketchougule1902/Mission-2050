@@ -97,10 +97,16 @@ export function roofHeight(x,z,y){return y>6&&x>=-123&&x<=-101&&z>=-95&&z<=-71?9
 export function route(start,goal,isBlocked){
  // Budgeted A* with a binary min-heap: no full-array sort on every expansion.
  // A route request can never monopolise the render thread in an inaccessible district.
- const step=4, sx=Math.round(start[0]/step),sz=Math.round(start[1]/step);
+ const step=4;let sx=Math.round(start[0]/step),sz=Math.round(start[1]/step);
  const gx=Math.round(goal[0]/step),gz=Math.round(goal[1]/step);
  const key=(x,z)=>x+','+z,heur=(x,z)=>Math.abs(x-gx)+Math.abs(z-gz);
  const edgeClear=(ax,az,bx,bz)=>{const n=Math.ceil(Math.hypot(bx-ax,bz-az)/.5);for(let i=1;i<=n;i++)if(isBlocked(ax+(bx-ax)*i/n,az+(bz-az)*i/n))return false;return true;};
+ if(isBlocked(...goal))return [];
+ if(edgeClear(...start,...goal))return [start,goal];
+ // Connect the exact start to a clear grid node; rounding must not cross a wall.
+ let seed=null,best=Infinity;
+ for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const x=sx+dx,z=sz+dz,d=Math.hypot(x*step-start[0],z*step-start[1]);if(d<best&&!isBlocked(x*step,z*step)&&edgeClear(...start,x*step,z*step)){seed=[x,z];best=d;}}
+ if(!seed)return [];[sx,sz]=seed;
  const heap=[],score=new Map([[key(sx,sz),0]]),parent=new Map(),closed=new Set();
  function push(p){let i=heap.length;heap.push(p);while(i){const j=(i-1)>>1;if(heap[j].f<=p.f)break;heap[i]=heap[j];i=j;}heap[i]=p;}
  function pop(){const top=heap[0],end=heap.pop();if(heap.length){let i=0;while(i*2+1<heap.length){let j=i*2+1;if(j+1<heap.length&&heap[j+1].f<heap[j].f)j++;if(end.f<=heap[j].f)break;heap[i]=heap[j];i=j;}heap[i]=end;}return top;}
@@ -117,10 +123,10 @@ export function route(start,goal,isBlocked){
    score.set(nid,g);parent.set(nid,id);push({x,z,g,f:g+heur(x,z)});
   }
  }
- if(!reached)return [start,goal];
+ if(!reached)return [];
  const points=[goal];let id=key(reached.x,reached.z);
- while(id!==key(sx,sz)){const [x,z]=id.split(',').map(Number);points.push([x*step,z*step]);id=parent.get(id);if(!id)return [start,goal];}
- points.push(start);return points.reverse();
+ while(id!==key(sx,sz)){const [x,z]=id.split(',').map(Number);points.push([x*step,z*step]);id=parent.get(id);if(!id)return [];}
+ points.push([sx*step,sz*step]);points.push(start);return points.reverse();
 }
 
 export function onRoad(x,z){return roads.some(r=>Math.abs(x-r)<7||Math.abs(z-r)<7)||serviceCorridor(x,z,4,5);}

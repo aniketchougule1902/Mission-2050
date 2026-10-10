@@ -1,3 +1,5 @@
+import {navigationGoal} from './navigation-target.js';
+import {localMovement,lateralStep} from './locomotion.js';
 import * as T from '/vendor/three.module.js';
 import {batchStaticMeshes} from './static-batching.js';
 import {GLTFLoader} from '/vendor/GLTFLoader.js';
@@ -18,7 +20,7 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
  let state,actions=[],active=false,paused=false,text=false,loaded=false,yaw=0,pitch=.18,view=0,working=false,jumpV=0,driving=false,speed=0,heading=0,time=0,last=performance.now(),frames=0,fpsStart=last,onTick=()=>{},onEvent=()=>{},drag=null,cinema=null,climbing=null,hero,doctor,quality='balanced',routeTime=0,routePoints=[],scanTime=0,footTime=0,blockTime=0,trafficCooldown=0,lastWalking=false,lastRunning=false;
  let renderScale=renderProfile('balanced',innerWidth,innerHeight,devicePixelRatio).scale,idleDraw=0,gpuLost=false,adaptiveLowDetail=false,chunkCheckTime=Infinity,visibleStaticChunks=staticChunks.length,trafficSnapshotAge=Infinity,trafficTelemetry=[];
   const surfaceFX=createSurfaceEffects(scene,reduced),presentation=createPresentation(renderer);let renderStats={calls:0,triangles:0};
-  let opening=false;const breadPose=new T.Object3D();breadPose.rotation.x=-Math.PI/2;const breadCoords=[];
+  let opening=false,selectedNavigation=null,routeStatus='pending';
   let gaitPhase=0,moveSide=0,moveForward=0,carSafe=null;let lastRoutePlan=null,physicsTime=0,walkX=0,walkZ=0,carX=0,carZ=0,trafficIndex=()=>[],trafficIndexTime=Infinity,brakeTime=0;
  let targetFPS=90,frameBudget=createFrameBudget(targetFPS),renderElapsed=0,ecologyPose=null;
  const camTarget=new T.Vector3(),camHead=new T.Vector3(),camDelta=new T.Vector3(),camPoint=new T.Vector3(),actorWorld=new T.Vector3();
@@ -85,8 +87,6 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
   const count=320,positions=new Float32Array(count*3),colours=new Float32Array(count*3),pg=new T.BufferGeometry();pg.setAttribute('position',new T.BufferAttribute(positions,3));pg.setAttribute('color',new T.BufferAttribute(colours,3));const pm=new T.PointsMaterial({size:.09,vertexColors:true,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false}),particles=new T.Points(pg,pm);particles.frustumCulled=false;lab.add(particles);
  const wave=mesh(new T.RingGeometry(.98,1.02,96),new T.MeshBasicMaterial({color:0x94eadd,transparent:true,opacity:0,side:T.DoubleSide,depthWrite:false,blending:T.AdditiveBlending}),[0,LAB_Y+.12,-8],lab);wave.rotation.x=-Math.PI/2;
  const scan=mesh(new T.RingGeometry(.98,1.02,64),new T.MeshBasicMaterial({color:0x8de3e7,transparent:true,opacity:0,side:T.DoubleSide,depthWrite:false}),[0,.16,0]);scan.rotation.x=-Math.PI/2;
- const bread=new T.InstancedMesh(new T.CircleGeometry(.21,12),new T.MeshBasicMaterial({color:0xf1c573,transparent:true,opacity:.8,depthWrite:false}),50);bread.frustumCulled=false;scene.add(bread);
- const waypoint=mesh(new T.CylinderGeometry(.08,.24,18,8,1,true),new T.MeshBasicMaterial({color:0xeec581,transparent:true,opacity:.15,side:T.DoubleSide,depthWrite:false,blending:T.AdditiveBlending}),[0,9,0]);
  const panels=[];for(const [x,z] of [[-119,-75],[-116,-84],[-106,-92]]){const m=box(2,.12,2.7,new T.MeshStandardMaterial({color:0x18354d,metalness:.75,roughness:.2}),[x,9.22,z],city);m.rotation.x=-.2;for(let k=-.8;k<1;k+=.4)box(.025,.012,2.4,new T.MeshStandardMaterial({color:0xaebcc7,metalness:.8}),[k,.085,0],m);m.visible=false;panels.push(m);}
  for(const x of [-99.4,-98.6])box(.055,9,.08,metal,[x,4.5,-71],city);for(let y=.3;y<9;y+=.4)box(.8,.045,.08,metal,[-99,y,-71],city);
  const valve=mesh(new T.TorusGeometry(.3,.045,8,32),gold,[222,1,72],city);valve.rotation.y=Math.PI/2;box(.04,.6,.04,metal,[0,0,0],valve);box(.6,.04,.04,metal,[0,0,0],valve);
@@ -96,8 +96,22 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
  function updateMarkers(){const ids=new Set(actions.map(a=>a.id));for(const [id,g] of markers)if(!ids.has(id)){scene.remove(g);g.traverse(m=>{m.geometry?.dispose();if(m.material&&m.material!==metal&&m.material!==gold){if(Array.isArray(m.material))m.material.forEach(item=>item.dispose());else m.material.dispose();}});markers.delete(id);}for(const a of actions){let g=markers.get(a.id);if(!g){g=new T.Group();g.position.set(a.x,a.y,a.z);const colour=a.kind==='gem'?stoneColors[phaseOf(state)]:a.id==='lift'?0x7bced8:0xefbc69;const mat=new T.MeshBasicMaterial({color:colour});const ring=mesh(new T.TorusGeometry(.65,.018,6,40),mat,[0,.08,0],g);ring.rotation.x=Math.PI/2;const icon=mesh(new T.OctahedronGeometry(.1),mat,[0,1.3,0],g);g.userData.icon=icon;const halo=aura(colour,.7,g);halo.position.y=1.3;
     if(['switch','repair','budget','test','valve'].includes(a.kind)){box(.5,.95,.38,metal,[0,.48,0],g);box(.34,.2,.025,mat,[0,.74,.2],g);}if(['pickup','deliver'].includes(a.kind))box(.6,.38,.4,gold,[0,.2,0],g);if(a.kind==='gem'){const stone=mesh(new T.IcosahedronGeometry(.19,0),new T.MeshStandardMaterial({color:colour,emissive:colour,emissiveIntensity:1.5}),[0,1,0],g);g.userData.stone=stone;}
     scene.add(g);markers.set(a.id,g);}g.userData.action=a;g.traverse(m=>{if(m.material?.isMeshBasicMaterial&&a.kind==='budget')m.material.color.set(a.selected?0x63deac:0xd8aeec);});}}
- function breadcrumbFloor(p){return state?.location==='lab'?LAB_Y:roofHeight(p[0],p[1],player.position.y);}
- function rebuildRoute(){const target=nearest();if(!target){bread.count=0;routePoints=[];lastRoutePlan=null;return;}const at={x:player.position.x,z:player.position.z},level=phaseOf(state);if(!routeNeedsRefresh(lastRoutePlan,at,target,level,state.location))return;lastRoutePlan={x:at.x,z:at.z,goalId:target.id,tx:target.x,tz:target.z,level,location:state.location};const start=[at.x,at.z],goal=[target.x,target.z];routePoints=state.location==='lab'||player.position.y>7?[start,goal]:route(start,goal,(x,z)=>collision(x,z,.45));const points=[];for(let i=1;i<routePoints.length;i++){const a=routePoints[i-1],b=routePoints[i],d=Math.hypot(b[0]-a[0],b[1]-a[1]);for(let t=0;t<d;t+=3)points.push([a[0]+(b[0]-a[0])*t/d,a[1]+(b[1]-a[1])*t/d]);}const m=new T.Object3D();m.rotation.x=-Math.PI/2;bread.count=Math.min(50,points.length);breadCoords.length=0;breadCoords.push(...points.slice(0,bread.count));for(let i=0;i<bread.count;i++){m.position.set(points[i][0],breadcrumbFloor(points[i])+.12,points[i][1]);m.updateMatrix();bread.setMatrixAt(i,m.matrix);}bread.instanceMatrix.needsUpdate=true;}
+ function supportFloor(p){return state?.location==='lab'?LAB_Y:roofHeight(p[0],p[1],player.position.y);}
+ function navigationTarget(){return navigationGoal(actions,player.position,selectedNavigation,state?.location||'city');}
+ function rebuildRoute(){
+  const target=navigationTarget();if(!target){routePoints=[];lastRoutePlan=null;routeStatus='none';return;}
+  const at={x:player.position.x,z:player.position.z},level=phaseOf(state);
+  if(!routeNeedsRefresh(lastRoutePlan,at,target,level,state.location,2.5))return;
+  lastRoutePlan={x:at.x,z:at.z,goalId:target.id,tx:target.x,tz:target.z,level,location:state.location};
+  const start=[at.x,at.z],goal=[target.x,target.z],solid=(x,z)=>collision(x,z,.45);
+  // Work stations may occupy a footprint: route to a legal interaction stance.
+  if(solid(...goal)&&target.kind!=='pin'){
+   let best=null,distance=Infinity;
+   for(let i=0;i<16;i++){const angle=i*Math.PI/8,p=[target.x+Math.cos(angle)*1.8,target.z+Math.sin(angle)*1.8],d=Math.hypot(p[0]-at.x,p[1]-at.z);if(!solid(...p)&&d<distance){best=p;distance=d;}}
+   if(best)goal.splice(0,2,...best);
+  }
+  routePoints=route(start,goal,solid);routeStatus=routePoints.length?'ready':'blocked';
+ }
  function setLocation(location){const underground=location==='lab';city.visible=!underground;lab.visible=underground;shaft.visible=false;sun.visible=!underground;hemi.intensity=underground?.12:1.25;scene.fog=underground?new T.Fog(0x101f2b,20,65):new T.Fog(0xb1bcc3,170,680);scene.background.set(underground?0x0e1b25:0xa5b3bd);cabin.position.y=underground?LAB_Y:0;doors.forEach((d,i)=>d.position.x=i%2?2.35:-2.35);}
  function animateParticles(index,progress,final=false){
    pm.opacity=Math.sin(progress*Math.PI);
@@ -173,11 +187,11 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
     car.rotation.y=heading;player.position.set(car.position.x,0,car.position.z);wheels.forEach(w=>w.rotation.x-=speed*dt/.43);
    }else{
     let x=(keys.has('d')||keys.has('ArrowRight')?1:0)-(keys.has('a')||keys.has('ArrowLeft')?1:0),z=(keys.has('s')||keys.has('ArrowDown')?1:0)-(keys.has('w')||keys.has('ArrowUp')?1:0),length=Math.hypot(x,z);
-    if(length){x/=length;z/=length;}moveSide=x;moveForward=-z;running=keys.has('Shift')&&length>0&&z<=0;
+    if(length){x/=length;z/=length;}running=keys.has('Shift')&&length>0&&z<=0;
     const v=running?6.2:3.6,targetX=(x*Math.cos(yaw)+z*Math.sin(yaw))*v,targetZ=(-x*Math.sin(yaw)+z*Math.cos(yaw))*v,blend=1-Math.exp(-dt*(length?14:10));
     walkX+=(targetX-walkX)*blend;walkZ+=(targetZ-walkZ)*blend;
     const moved=sweptMove(player.position.x,player.position.z,walkX*dt,walkZ*dt,(x,z)=>collision(x,z),true);
-    const distanceMoved=Math.hypot(moved.x-player.position.x,moved.z-player.position.z);player.position.x=moved.x;player.position.z=moved.z;
+    const actualX=(moved.x-player.position.x)/dt,actualZ=(moved.z-player.position.z)/dt,distanceMoved=Math.hypot(actualX,actualZ)*dt;const local=localMovement(actualX,actualZ,yaw,v);moveSide=local.side;moveForward=local.forward;player.position.x=moved.x;player.position.z=moved.z;
     if(moved.hit){const slide=reflectVelocity(walkX,walkZ,moved.nx,moved.nz,0);walkX=slide.x;walkZ=slide.z;}
     if(!areaUnlocked(moved.x+targetX*dt,moved.z+targetZ*dt,phaseOf(state))&&state.location==='city'&&!blockTime){onEvent('district.locked');blockTime=2;}
     if(distanceMoved>.001){player.rotation.y=dampAngle(player.rotation.y,yaw+Math.PI,dt);walking=true;gaitPhase+=distanceMoved*(running?6:7);footTime+=dt;}
@@ -200,7 +214,7 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
    }
   });
    if(physicsSteps){lastWalking=walking;lastRunning=running;}else if(active&&!paused&&!cinema&&!climbing&&!ecology.playing()){walking=lastWalking;running=lastRunning;}
-   hero?.play(climbing?'Idle':walking?(running?'Run':'Walk'):'Idle');if(hero){const rate=moveForward<-.1?-1:1;hero.clips.Walk?.setEffectiveTimeScale(rate);}
+   hero?.play(climbing||walking&&Math.abs(moveSide)>.65?'Idle':walking?(running?'Run':'Walk'):'Idle');if(hero){const rate=moveForward<-.1?-1:1;hero.clips.Walk?.setEffectiveTimeScale(rate);}
    for(const a of actors){
     const visible=a===hero||(lab.visible&&a.root.parent===lab)||(city.visible&&a.root.parent===city&&a.root.getWorldPosition(actorWorld).distanceToSquared(player.position)<2500);
     if(a!==hero)a.root.visible=visible;
@@ -216,10 +230,10 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
    const cycle=climbing?climbing.elapsed*5:gaitPhase;
    for(const [side,offset] of [['Left',0],['Right',Math.PI]]){
     const wave=Math.sin(cycle+offset),bend=Math.max(0,wave);
-    const pose=(part,x,z=0)=>{const name=side+part,b=hero.bones[name],r=hero.rest[name];if(b&&r){b.rotation.copy(r);b.rotation.x+=x;b.rotation.z+=z;}};
+    const pose=(part,x,z=0,weight=1)=>{const name=side+part,b=hero.bones[name],r=hero.rest[name];if(b&&r){b.rotation.x+=(r.x+x-b.rotation.x)*weight;b.rotation.y+=(r.y-b.rotation.y)*weight;b.rotation.z+=(r.z+z-b.rotation.z)*weight;}};
     if(climbing){pose('UpLeg',-.65*bend);pose('Leg',.9*bend);pose('Arm',-2.35+.25*wave);pose('ForeArm',-.45-.3*bend);}
     else if(jumpV!==0){pose('UpLeg',-.22);pose('Leg',.42);pose('Arm',-.3,side==='Left'?-.15:.15);}
-    else{pose('UpLeg',-.32*moveForward*wave,.32*moveSide*wave);pose('Leg',.35*bend);}
+    else{const step=lateralStep(cycle,moveSide,moveForward,side==='Left'),weight=Math.min(1,Math.abs(moveSide)*1.5);pose('UpLeg',step.hipX,step.hipZ,weight);pose('Leg',step.knee,0,weight);pose('Arm',step.armX,step.armZ,weight);pose('ForeArm',-.16*Math.abs(moveSide),0,weight);}
    }
   }
   if(climbing&&!paused){climbing.elapsed+=dt;const c=climbing,p=Math.min(1,c.elapsed/c.duration);
@@ -258,12 +272,12 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
     });
    }
    traffic.forEach(t=>{t.model.visible=city.visible&&Math.abs(t.model.position.z-player.position.z)<125;});
-  if(active){sun.target.position.copy(player.position);sun.position.set(player.position.x-45,75,player.position.z+30);routeTime+=dt;if(routeTime>1.5){routeTime=0;rebuildRoute();}}bread.visible=active&&!cinema&&!climbing;const target=active?nearest():null;waypoint.visible=!!target&&!cinema&&state?.location==='city';if(target){waypoint.position.set(target.x,target.y+9,target.z);waypoint.material.opacity=reduced?.12:.12+Math.sin(time*2)*.03;}bread.material.opacity=reduced?.8:.7+Math.sin(time*3)*.1;
-  contact.position.set(player.position.x,breadcrumbFloor([player.position.x,player.position.z])+.09,player.position.z);contact.visible=active&&!driving;
+  if(active){sun.target.position.copy(player.position);sun.position.set(player.position.x-45,75,player.position.z+30);routeTime+=dt;if(routeTime>.4){routeTime=0;rebuildRoute();}}
+  contact.position.set(player.position.x,supportFloor([player.position.x,player.position.z])+.09,player.position.z);contact.visible=active&&!driving;
    trafficSnapshotAge+=dt;
     if(trafficSnapshotAge>=.2){trafficSnapshotAge=0;
      trafficTelemetry=traffic.map(t=>({x:t.model.position.x,z:t.model.position.z,yaw:t.model.rotation.y,direction:t.direction}));}
-    const info={position:[player.position.x,player.position.y,player.position.z],nearest:nearest(),driving,speed:Math.abs(speed)*3.6,modelLoaded:loaded,nativeRig:true,climbing:!!climbing,grounded:jumpV===0,securityGuards:guards.length,traffic:trafficTelemetry,yaw,facing:driving?heading+Math.PI:player.rotation.y,location:state?.location||'city',cinematic:cinema?{kind:cinema.kind,progress:cinema.elapsed/cinema.duration}:null,route:routePoints,stats:{calls:renderStats.calls,triangles:renderStats.triangles,visibleChunks:visibleStaticChunks,totalChunks:staticChunks.length,renderTier:quality==='low'||adaptiveLowDetail?'low':quality,pixelRatio:renderScale,frameMS:renderElapsed,targetFPS}};
+    const info={position:[player.position.x,player.position.y,player.position.z],nearest:nearest(),navigationTarget:navigationTarget(),routeStatus,selectedNavigation:!!selectedNavigation,driving,speed:Math.abs(speed)*3.6,modelLoaded:loaded,nativeRig:true,climbing:!!climbing,grounded:jumpV===0,securityGuards:guards.length,traffic:trafficTelemetry,yaw,facing:driving?heading+Math.PI:player.rotation.y,location:state?.location||'city',cinematic:cinema?{kind:cinema.kind,progress:cinema.elapsed/cinema.duration}:null,route:routePoints,stats:{calls:renderStats.calls,triangles:renderStats.triangles,visibleChunks:visibleStaticChunks,totalChunks:staticChunks.length,renderTier:quality==='low'||adaptiveLowDetail?'low':quality,pixelRatio:renderScale,frameMS:renderElapsed,targetFPS}};
    onTick(dt,info);const renderStart=performance.now();renderStats=presentation.render(scene,camera,{enabled:quality==='high'&&!adaptiveLowDetail&&renderScale>.85,phase:phaseOf(state||{assembled:[]}),lab:lab.visible});renderElapsed=performance.now()-renderStart;frames++;
    if(now-fpsStart>1000){const measured=Math.round(frames*1000/(now-fpsStart));onFPS(measured);frames=0;fpsStart=now;
    }
@@ -278,10 +292,10 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
   canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();gpuLost=true;onEvent('renderer.context_lost');});
   canvas.addEventListener('webglcontextrestored',()=>{gpuLost=false;last=performance.now();onEvent('renderer.context_restored');});
   canvas.addEventListener('pointerdown',e=>{if(active&&!paused&&!cinema){drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);}});canvas.addEventListener('pointermove',e=>{if(!drag)return;yaw-=(e.clientX-drag[0])*.005;pitch=T.MathUtils.clamp(pitch+(e.clientY-drag[1])*.003,-.25,.7);drag=[e.clientX,e.clientY];});for(const e of ['pointerup','pointercancel'])canvas.addEventListener(e,()=>drag=null);canvas.addEventListener('wheel',e=>{if(active){e.preventDefault();view=e.deltaY>0?1:0;}},{passive:false});addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderScale=renderProfile(quality,innerWidth,innerHeight,devicePixelRatio).scale;renderer.setPixelRatio(renderScale);frameBudget.reset();});
- return {keys,intro(v){opening=v;},hooks(tick,event){onTick=tick;onEvent=event;},working(v){working=v;},moveFor(key,duration=.45){keys.add(key);clearTimeout(timers.get(key));timers.set(key,setTimeout(()=>keys.delete(key),duration*1000));},start(pos=spawn,savedVehicle=null){active=true;cinema=null;climbing=null;ecologyPose=null;car.position.set(...(savedVehicle?.position||[parking[0],0,parking[1]]));car.rotation.y=savedVehicle?.heading??Math.PI;heading=car.rotation.y;trafficCooldown=0;trafficIndexTime=Infinity;chunkCheckTime=Infinity;trafficSnapshotAge=Infinity;lastRoutePlan=null;carSafe=null;driving=false;speed=0;walkX=walkZ=carX=carZ=0;player.position.set(...pos);player.rotation.y=Math.PI;yaw=0;jumpV=0;setLocation(pos[1]<-10?'lab':'city');if(savedVehicle?.driving&&pos[1]>=0){driving=true;player.position.copy(car.position);}player.visible=!driving;},stop(){active=false;keys.clear();},pause(v){paused=v;keys.clear();walkX=walkZ=carX=carZ=0;speed=0;},position:()=>[player.position.x,player.position.y,player.position.z],nearest,
+ return {keys,setNavigationTarget(target){selectedNavigation=target;lastRoutePlan=null;rebuildRoute();},intro(v){opening=v;},hooks(tick,event){onTick=tick;onEvent=event;},working(v){working=v;},moveFor(key,duration=.45){keys.add(key);clearTimeout(timers.get(key));timers.set(key,setTimeout(()=>keys.delete(key),duration*1000));},start(pos=spawn,savedVehicle=null){active=true;selectedNavigation=null;routePoints=[];cinema=null;climbing=null;ecologyPose=null;car.position.set(...(savedVehicle?.position||[parking[0],0,parking[1]]));car.rotation.y=savedVehicle?.heading??Math.PI;heading=car.rotation.y;trafficCooldown=0;trafficIndexTime=Infinity;chunkCheckTime=Infinity;trafficSnapshotAge=Infinity;lastRoutePlan=null;carSafe=null;driving=false;speed=0;walkX=walkZ=carX=carZ=0;player.position.set(...pos);player.rotation.y=Math.PI;yaw=0;jumpV=0;setLocation(pos[1]<-10?'lab':'city');if(savedVehicle?.driving&&pos[1]>=0){driving=true;player.position.copy(car.position);}player.visible=!driving;},stop(){active=false;keys.clear();},pause(v){paused=v;keys.clear();walkX=walkZ=carX=carZ=0;speed=0;},position:()=>[player.position.x,player.position.y,player.position.z],nearest,
   update(a,next){state=a;actions=next;ecology.sync(a.tasks);updateMarkers();if(!cinema)setLocation(a.location);core.stones.forEach((m,i)=>m.visible=a.assembled.includes(i));panels.forEach((m,i)=>m.visible=a.tasks.includes('panel'+(i+1)));carry.material.color.set(stoneColors[Math.max(0,a.stone)]);carry.material.emissive.set(stoneColors[Math.max(0,a.stone)]);carryGlow.material.color.set(stoneColors[Math.max(0,a.stone)]);carry.visible=a.stone>=0;tool.visible=!!a.inventory&&a.stone<0;cargo.visible=a.tasks.includes('cargo')&&!a.tasks.includes('clinicDelivery');water.material.color.set(a.tasks.includes('valve')&&!a.tasks.includes('litter')?0x528a8d:0x4b7b7c);beam.material.opacity=0;coreLight.intensity=25+a.assembled.length*3;routeTime=2;},
    vehicleState(){return {position:[car.position.x,0,car.position.z],heading:car.rotation.y,driving};},
-   navigation(){return {obstacles,yaw,heading,carPosition:[car.position.x,car.position.y,car.position.z],speed};},
+   navigation(){return {obstacles,yaw,heading,route:routePoints,navigationTarget:navigationTarget(),routeStatus,carPosition:[car.position.x,car.position.y,car.position.z],speed};},
    ecologyAction(id){keys.clear();walkX=walkZ=0;const site=ecologicalActionSite(id);
     if(site&&ecologicalActionKind(id)==='plant'&&Math.hypot(player.position.x-site[0],player.position.z-site[1])<1.3){
      for(const [dx,dz] of [[0,1.5],[1.5,0],[-1.5,0],[0,-1.5]])if(!collision(site[0]+dx,site[1]+dz)){ecologyPose={from:player.position.clone(),to:new T.Vector3(site[0]+dx,player.position.y,site[1]+dz),site,elapsed:0};break;}

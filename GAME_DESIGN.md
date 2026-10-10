@@ -22,7 +22,7 @@ The strongest path is efficiency, three sunny panels, infill/protected grove, ve
 
 ## Navigation and feedback
 
-Default gameplay uses third-person exploration with chase/wide/first-person cameras, native human Idle/Walk/Run animation, gravity/jump, roof ladder, simple collision, arcade utility driving and nearby NPCs. The HUD gives a milestone checklist, task name, distance, direction arrow and specific instructions. Gold breadcrumb dots follow walkable paths on the surface; the map distinguishes opened and locked regions and switches to a lab floor plan underground. Work progress, equipment, stone carrying, radio, scanner, doors, colour and sound provide feedback.
+Default gameplay uses third-person exploration with chase/wide/first-person cameras, native human Idle/Walk/Run animation, gravity/jump, roof ladder, simple collision, arcade utility driving and nearby NPCs. The HUD gives a milestone checklist, task name, distance, direction arrow and specific instructions. Coloured compass arrows and map routes track the selected activity or marked destination; no ground breadcrumb dots are used. Activities, core stones and lift/ladder transfers have distinct map icons; the map distinguishes opened and locked regions and switches to a lab floor plan underground. Work progress, equipment, stone carrying, radio, scanner, doors, colour and sound provide feedback.
 
 Five original stone motifs accompany activation: amber power, bright azure, softer emerald, watery cyan and deeper violet. Sounds are generated locally. Movement-free accessibility mode shares prerequisites but skips traversal/cinematics; it is labelled separately.
 
@@ -39,3 +39,7 @@ Story derives from the supplied TXT, Storybook, Impact Brief and judging guide. 
 ## Roadside security update (3.0.1)
 
 The research entrance and its entire underground lab are relocated to the block beside the main road, with elevator centre at x24,z32. Fencing leaves a clear pedestrian entrance; two security guards stand at the compound entrance and four surround the reactor. Parking and spawn are off the traffic lanes. Main-road traffic uses straight lane paths, heading derived from travel direction and corrected forward wheel rotation, without the old lab avoidance detour. Maps, proximity tasks, containment collision, cinematic cameras, stone effects and elevator shaft all share the translated research location. Older underground saves migrate once and retain progress.
+
+## Selected destination navigation
+
+The selected map activity or free pin drives a shared navigation target, collision-aware route and compass arrow. Interaction remains based on real proximity. Automatic guidance prioritises mission tasks and available core stones, using the school ladder before rooftop work and on descent while carrying a stone. Failed routing reports no walkable route instead of drawing a straight line through obstacles. Map routes use blue for selected destinations, orange for activities, purple for collectible cores and green for lift/ladder transfers. Sideways locomotion blends a velocity-driven lateral gait on the Soldier native bones while keeping the character aligned with camera heading.
