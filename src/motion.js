@@ -69,3 +69,10 @@ export function cameraFraction(from,to,nearby,clearance=.25){
  }
  return limit;
 }
+
+// Physics deliberately caps catch-up work at 100ms; cinematics must progress closer
+// to real time during slow rendering while still bounding visible interpolation.
+export function visualFrameDelta(elapsed,maxDelta=.25){
+ if(!Number.isFinite(elapsed)||elapsed<=0)return 0;
+ return Math.min(elapsed,maxDelta);
+}

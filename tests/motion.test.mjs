@@ -66,3 +66,13 @@ test('Underground camera protects the reactor at negative world elevations',()=>
  const q=cameraFraction({x:24,y:-22,z:22},{x:24,y:-21,z:12},index);
  assert.ok(q>0&&q<.3);
 });
+
+import {visualFrameDelta} from '../src/motion.js';
+test('Cinematic frames preserve normal 60Hz pacing and cap expensive catch-up',()=>{
+ assert.equal(visualFrameDelta(1/60),1/60);
+ assert.equal(visualFrameDelta(.5),.25);
+ assert.equal(visualFrameDelta(10),.25);
+ assert.equal(visualFrameDelta(-1),0);
+ assert.equal(visualFrameDelta(Infinity),0);
+ assert.equal(visualFrameDelta(NaN),0);
+});
