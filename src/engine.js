@@ -1,5 +1,5 @@
-import {navigationGoal} from './navigation-target.js';
-import {localMovement,lateralStep} from './locomotion.js';
+import {navigationGoal,navigationRoute} from './navigation-target.js';
+import {movementFacing} from './locomotion.js';
 import * as T from '/vendor/three.module.js';
 import {batchStaticMeshes} from './static-batching.js';
 import {GLTFLoader} from '/vendor/GLTFLoader.js';
@@ -21,7 +21,7 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
  let renderScale=renderProfile('balanced',innerWidth,innerHeight,devicePixelRatio).scale,idleDraw=0,gpuLost=false,adaptiveLowDetail=false,chunkCheckTime=Infinity,visibleStaticChunks=staticChunks.length,trafficSnapshotAge=Infinity,trafficTelemetry=[];
   const surfaceFX=createSurfaceEffects(scene,reduced),presentation=createPresentation(renderer);let renderStats={calls:0,triangles:0};
   let opening=false,selectedNavigation=null,routeStatus='pending';
-  let gaitPhase=0,moveSide=0,moveForward=0,carSafe=null;let lastRoutePlan=null,physicsTime=0,walkX=0,walkZ=0,carX=0,carZ=0,trafficIndex=()=>[],trafficIndexTime=Infinity,brakeTime=0;
+  let carSafe=null;let lastRoutePlan=null,physicsTime=0,walkX=0,walkZ=0,carX=0,carZ=0,trafficIndex=()=>[],trafficIndexTime=Infinity,brakeTime=0;
  let targetFPS=90,frameBudget=createFrameBudget(targetFPS),renderElapsed=0,ecologyPose=null;
  const camTarget=new T.Vector3(),camHead=new T.Vector3(),camDelta=new T.Vector3(),camPoint=new T.Vector3(),actorWorld=new T.Vector3();
  const actors=[],guards=[],markers=new Map(),labOffset=new T.Vector3(LAB_X,0,LAB_Z),obstacleIndex=(x,z)=>staticObstacleIndex(x,z),labCameraIndex=createObstacleIndex([{x:LAB_X,z:LAB_Z-8,w:3.4,d:3.4,bottom:LAB_Y,h:LAB_Y+6.4}]);
@@ -103,14 +103,7 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
   const at={x:player.position.x,z:player.position.z},level=phaseOf(state);
   if(!routeNeedsRefresh(lastRoutePlan,at,target,level,state.location,2.5))return;
   lastRoutePlan={x:at.x,z:at.z,goalId:target.id,tx:target.x,tz:target.z,level,location:state.location};
-  const start=[at.x,at.z],goal=[target.x,target.z],solid=(x,z)=>collision(x,z,.45);
-  // Work stations may occupy a footprint: route to a legal interaction stance.
-  if(solid(...goal)&&target.kind!=='pin'){
-   let best=null,distance=Infinity;
-   for(let i=0;i<16;i++){const angle=i*Math.PI/8,p=[target.x+Math.cos(angle)*1.8,target.z+Math.sin(angle)*1.8],d=Math.hypot(p[0]-at.x,p[1]-at.z);if(!solid(...p)&&d<distance){best=p;distance=d;}}
-   if(best)goal.splice(0,2,...best);
-  }
-  routePoints=route(start,goal,solid);routeStatus=routePoints.length?'ready':'blocked';
+  routePoints=navigationRoute([at.x,at.z],target,(x,z)=>collision(x,z,.45),route);routeStatus=routePoints.length?'ready':'blocked';
  }
  function setLocation(location){const underground=location==='lab';city.visible=!underground;lab.visible=underground;shaft.visible=false;sun.visible=!underground;hemi.intensity=underground?.12:1.25;scene.fog=underground?new T.Fog(0x101f2b,20,65):new T.Fog(0xb1bcc3,170,680);scene.background.set(underground?0x0e1b25:0xa5b3bd);cabin.position.y=underground?LAB_Y:0;doors.forEach((d,i)=>d.position.x=i%2?2.35:-2.35);}
  function animateParticles(index,progress,final=false){
@@ -187,14 +180,14 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
     car.rotation.y=heading;player.position.set(car.position.x,0,car.position.z);wheels.forEach(w=>w.rotation.x-=speed*dt/.43);
    }else{
     let x=(keys.has('d')||keys.has('ArrowRight')?1:0)-(keys.has('a')||keys.has('ArrowLeft')?1:0),z=(keys.has('s')||keys.has('ArrowDown')?1:0)-(keys.has('w')||keys.has('ArrowUp')?1:0),length=Math.hypot(x,z);
-    if(length){x/=length;z/=length;}running=keys.has('Shift')&&length>0&&z<=0;
+    if(length){x/=length;z/=length;}running=keys.has('Shift')&&length>0;
     const v=running?6.2:3.6,targetX=(x*Math.cos(yaw)+z*Math.sin(yaw))*v,targetZ=(-x*Math.sin(yaw)+z*Math.cos(yaw))*v,blend=1-Math.exp(-dt*(length?14:10));
     walkX+=(targetX-walkX)*blend;walkZ+=(targetZ-walkZ)*blend;
     const moved=sweptMove(player.position.x,player.position.z,walkX*dt,walkZ*dt,(x,z)=>collision(x,z),true);
-    const actualX=(moved.x-player.position.x)/dt,actualZ=(moved.z-player.position.z)/dt,distanceMoved=Math.hypot(actualX,actualZ)*dt;const local=localMovement(actualX,actualZ,yaw,v);moveSide=local.side;moveForward=local.forward;player.position.x=moved.x;player.position.z=moved.z;
+    const actualX=(moved.x-player.position.x)/dt,actualZ=(moved.z-player.position.z)/dt,distanceMoved=Math.hypot(actualX,actualZ)*dt;player.position.x=moved.x;player.position.z=moved.z;
     if(moved.hit){const slide=reflectVelocity(walkX,walkZ,moved.nx,moved.nz,0);walkX=slide.x;walkZ=slide.z;}
     if(!areaUnlocked(moved.x+targetX*dt,moved.z+targetZ*dt,phaseOf(state))&&state.location==='city'&&!blockTime){onEvent('district.locked');blockTime=2;}
-    if(distanceMoved>.001){player.rotation.y=dampAngle(player.rotation.y,yaw+Math.PI,dt);walking=true;gaitPhase+=distanceMoved*(running?6:7);footTime+=dt;}
+    if(distanceMoved>.001){player.rotation.y=movementFacing(actualX,actualZ,player.rotation.y,dt);walking=true;footTime+=dt;}
     if(jumpV===0&&footTime>(running?.28:.46)){onEvent('footstep');if(state.location==='city'&&(Math.hypot(player.position.x-112,player.position.z+109)<70))surfaceFX.emit('dust',player.position.x,player.position.y+.05,player.position.z);if(state.location==='city'&&Math.abs(player.position.x-231)<5)surfaceFX.emit('water',player.position.x,.1,player.position.z);footTime=0;}
     const floor=state.location==='lab'?LAB_Y:roofHeight(player.position.x,player.position.z,player.position.y);
     // Small support changes follow the floor; taller roof transitions use the ladder.
@@ -214,7 +207,7 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
    }
   });
    if(physicsSteps){lastWalking=walking;lastRunning=running;}else if(active&&!paused&&!cinema&&!climbing&&!ecology.playing()){walking=lastWalking;running=lastRunning;}
-   hero?.play(climbing||walking&&Math.abs(moveSide)>.65?'Idle':walking?(running?'Run':'Walk'):'Idle');if(hero){const rate=moveForward<-.1?-1:1;hero.clips.Walk?.setEffectiveTimeScale(rate);}
+   hero?.play(climbing?'Idle':walking?(running?'Run':'Walk'):'Idle');
    for(const a of actors){
     const visible=a===hero||(lab.visible&&a.root.parent===lab)||(city.visible&&a.root.parent===city&&a.root.getWorldPosition(actorWorld).distanceToSquared(player.position)<2500);
     if(a!==hero)a.root.visible=visible;
@@ -226,14 +219,13 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
     }
    }
   // Apply steps on this model's own bones, after native clips have sampled.
-  if(hero&&(climbing||jumpV!==0||walking&&Math.abs(moveSide)>.1)){
-   const cycle=climbing?climbing.elapsed*5:gaitPhase;
+  if(hero&&(climbing||jumpV!==0)){
+   const cycle=climbing?climbing.elapsed*5:0;
    for(const [side,offset] of [['Left',0],['Right',Math.PI]]){
     const wave=Math.sin(cycle+offset),bend=Math.max(0,wave);
     const pose=(part,x,z=0,weight=1)=>{const name=side+part,b=hero.bones[name],r=hero.rest[name];if(b&&r){b.rotation.x+=(r.x+x-b.rotation.x)*weight;b.rotation.y+=(r.y-b.rotation.y)*weight;b.rotation.z+=(r.z+z-b.rotation.z)*weight;}};
     if(climbing){pose('UpLeg',-.65*bend);pose('Leg',.9*bend);pose('Arm',-2.35+.25*wave);pose('ForeArm',-.45-.3*bend);}
     else if(jumpV!==0){pose('UpLeg',-.22);pose('Leg',.42);pose('Arm',-.3,side==='Left'?-.15:.15);}
-    else{const step=lateralStep(cycle,moveSide,moveForward,side==='Left'),weight=Math.min(1,Math.abs(moveSide)*1.5);pose('UpLeg',step.hipX,step.hipZ,weight);pose('Leg',step.knee,0,weight);const arm=hero.bones[side+'Arm'];if(arm){arm.rotation.x+=step.armX*weight;arm.rotation.z+=step.armZ*weight;}}
    }
   }
   if(climbing&&!paused){climbing.elapsed+=dt;const c=climbing,p=Math.min(1,c.elapsed/c.duration);

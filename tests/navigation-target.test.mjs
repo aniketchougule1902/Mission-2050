@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {navigationGoal,navigationColour} from '../src/navigation-target.js';
+import {navigationGoal,navigationColour,navigationRoute} from '../src/navigation-target.js';
 import {freshAdventure,actionsFor} from '../src/adventure.js';
 import {route} from '../src/layout.js';
 import {localMovement,lateralStep} from '../src/locomotion.js';
+import {movementFacing} from '../src/locomotion.js';
 test('Mission guidance keeps the fuse target even next to the lift',()=>{
  const a=freshAdventure();assert.equal(navigationGoal(actionsFor(a),{x:24,y:0,z:32},null).id,'fuse');
 });
@@ -39,4 +40,26 @@ test('Lateral gait follows actual velocity, mirrors direction and alternates fee
  assert.equal(right.hipZ,-left.hipZ);assert.ok(Math.abs(right.hipX)<1e-8);
  assert.ok(right.knee>lateralStep(Math.PI/2,1,0,false).knee);
  assert.equal(lateralStep(0,0,1).knee,0);
+});
+test('Character turns toward travel in all directions and retains facing when stopped',()=>{
+ for(const [vx,vz] of [[1,0],[-1,0],[0,1],[0,-1],[1,-1],[-1,1]]){
+  let facing=Math.PI;for(let i=0;i<60;i++)facing=movementFacing(vx,vz,facing,1/60);
+  assert.ok(Math.abs(Math.atan2(Math.sin(facing-Math.atan2(vx,vz)),Math.cos(facing-Math.atan2(vx,vz))))<.001);
+ }
+ assert.equal(movementFacing(0,0,1.2,1/60),1.2);
+ assert.ok(Math.abs(movementFacing(-.01,-1,Math.PI-.01,1/60)-(Math.PI-.01))<.02);
+});
+test('Selected lift and surface pin route through the rooftop ladder',()=>{
+ const a=freshAdventure();a.assembled=[0];a.stone=1;const actions=actionsFor(a);
+ for(const selection of [{actionId:'lift',location:'city'},{x:24,z:32,location:'city'}]){
+  const goal=navigationGoal(actions,{y:9},selection);assert.equal(goal.id,'ladder');assert.equal(goal.y,9);
+  assert.notEqual(navigationGoal(actions,{y:0},selection).id,'ladder');
+ }
+});
+test('Routing tries reachable station sides and never relocates a blocked free pin',()=>{
+ const blocked=(x,z)=>Math.hypot(x,z)<1;
+ const planner=(start,end)=>end[0]>1?[start,end]:[];
+ const points=navigationRoute([-10,0],{x:0,z:0,kind:'repair'},blocked,planner);
+ assert.ok(points.at(-1)[0]>1);assert.ok(Math.hypot(...points.at(-1))<2.2);
+ assert.deepEqual(navigationRoute([-10,0],{x:0,z:0,kind:'pin'},blocked,planner),[]);
 });
