@@ -12,6 +12,9 @@ var car_wheels: Array[Node3D] = []
 var markers: Array[Node3D] = []
 var obstacles: Array[Vector4] = []
 var installed: int = 0
+var garden_plots: Dictionary = {}
+var garden_trees: Dictionary = {}
+var garden_completed: Dictionary = {}
 var elapsed: float = 0.0
 const DISTRICT_CENTERS = [Vector2(-27,24), Vector2(-111,-85), Vector2(112,-109), Vector2(207,66), Vector2(-125,196)]
 const STONE_COLORS = [Color("#efac55"),Color("#48c7f3"),Color("#65e29d"),Color("#6cddd6"),Color("#b89ff6")]
@@ -193,6 +196,7 @@ func _build_city() -> void:
 		box(city,Vector3(24+sx,1.75,32),Vector3(0.6,3.5,6),Color("#273f4b"),0.5)
 	box(city,Vector3(24,3.7,32),Vector3(9,0.7,7),Color("#58b1b7"),0.4)
 	box(city,Vector3(24,1.4,35),Vector3(8,2.8,0.4),Color("#273f4b"),0.5)
+	_build_gardens()
 	for i in range(8):
 		var auto := Node3D.new()
 		auto.name = "Traffic"
@@ -205,6 +209,93 @@ func _build_city() -> void:
 				wh.rotation_degrees.z = 90
 				car_wheels.append(wh)
 		cars.append(auto)
+
+# Procedural, mobile-friendly nursery: planted trees and water-grown saplings persist in saves.
+func _build_gardens() -> void:
+	var sites := {"housing1":Vector2(93,-104),"housing2":Vector2(93,-123),
+		"water1":Vector2(117,-124),"water2":Vector2(136,-126)}
+	for id in sites:
+		var site: Vector2 = sites[id]
+		var bed := Node3D.new()
+		bed.name = "RestorationPlot_" + id
+		bed.position = Vector3(site.x,0,site.y)
+		city.add_child(bed)
+		cylinder(bed,Vector3(0,0.07,0),0.95,0.13,Color("#4d382a"))
+		var ring := cylinder(bed,Vector3(0,0.02,0),1.05,0.04,Color("#b38a58"))
+		ring.name = "NurserySoil"
+		var tree := Node3D.new()
+		tree.name = "GrowingTree"
+		bed.add_child(tree)
+		cylinder(tree,Vector3(0,0.8,0),0.14,1.6,Color("#775139"))
+		sphere(tree,Vector3(0,1.80,0),0.76,Color("#3e965a"))
+		sphere(tree,Vector3(-0.48,1.47,0.08),0.53,Color("#2e7949"))
+		sphere(tree,Vector3(0.46,1.52,-0.08),0.55,Color("#57b46e"))
+		tree.scale = Vector3.ONE * 0.001
+		garden_plots[id] = bed
+		garden_trees[id] = tree
+		garden_completed[id] = false
+
+func restore_gardens(completed: Dictionary) -> void:
+	for id in garden_trees:
+		var done: bool = bool(completed.get(id,false))
+		garden_completed[id] = done
+		var tree: Node3D = garden_trees[id]
+		tree.scale = Vector3.ONE * ((1.45 if id.begins_with("water") else 1.0) if done else 0.001)
+
+func play_ecology(id: String, arm: Node3D) -> bool:
+	if not garden_trees.has(id):
+		return false
+	var watering := id.begins_with("water")
+	var tree: Node3D = garden_trees[id]
+	var bed: Node3D = garden_plots[id]
+	var can := Node3D.new()
+	can.name = "TemporaryWateringCan"
+	arm.add_child(can)
+	can.position = Vector3(0.05,-0.52,-0.12)
+	cylinder(can,Vector3.ZERO,0.19,0.34,Color("#9edbe2"))
+	var spout := cylinder(can,Vector3(-0.27,0.09,0),0.06,0.39,Color("#acdfdf"))
+	spout.rotation.z = -PI * 0.43
+	var handle := sphere(can,Vector3(0.22,0.04,0),0.12,Color("#5592a5"))
+	handle.scale = Vector3(0.32,1.3,1.0)
+	var particles: Array[Node3D] = []
+	var job := create_tween()
+	job.set_parallel(true)
+	if watering:
+		tree.scale = Vector3.ONE * 0.37
+		job.tween_property(tree,"scale",Vector3.ONE * 1.45,2.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		for i in range(18):
+			var drop := Node3D.new()
+			drop.position = Vector3(0.6,1.4,0.3)
+			bed.add_child(drop)
+			sphere(drop,Vector3.ZERO,0.075,Color("#87dfff"),1.1)
+			particles.append(drop)
+			var dest := Vector3(-0.3 + float(i % 7) * 0.09,0.1, float((i * 3) % 8) * 0.08 - 0.25)
+			job.tween_property(drop,"position",dest,0.45 + float(i % 4)*0.06).set_delay(float(i)*0.095)
+	else:
+		tree.scale = Vector3.ONE * 0.04
+		job.tween_property(tree,"scale",Vector3.ONE,2.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		for i in range(9):
+			var soil := Node3D.new()
+			bed.add_child(soil)
+			soil.position = Vector3(0,0.15,0)
+			sphere(soil,Vector3.ZERO,0.06,Color("#b69362"))
+			particles.append(soil)
+			var angle := float(i) * TAU / 9.0
+			job.tween_property(soil,"position",Vector3(sin(angle)*0.8,0.05,cos(angle)*0.8),0.62).set_delay(0.38 + float(i)*0.045)
+	job.tween_property(arm,"rotation:x",-0.85 if watering else -1.18,0.55).set_trans(Tween.TRANS_SINE)
+	job.tween_property(can,"rotation:z",-0.9 if watering else -0.35,0.7).set_delay(0.35)
+	await job.finished
+	var recover := create_tween().set_parallel(true)
+	recover.tween_property(arm,"rotation:x",0.0,0.4)
+	recover.tween_property(can,"rotation:z",0.0,0.4)
+	await recover.finished
+	for p in particles:
+		if is_instance_valid(p):
+			p.queue_free()
+	can.queue_free()
+	garden_completed[id] = true
+	tree.scale = Vector3.ONE * (1.45 if watering else 1.0)
+	return true
 
 func _build_lab() -> void:
 	box(lab,Vector3(24,-0.4,16),Vector3(34,0.7,34),Color("#253c47"),0.45)
