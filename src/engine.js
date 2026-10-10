@@ -1,4 +1,4 @@
-import {navigationGoal,navigationRoute} from './navigation-target.js';
+import {navigationGoal,navigationRoute,navigationColour} from './navigation-target.js';
 import {movementFacing} from './locomotion.js';
 import * as T from '/vendor/three.module.js';
 import {batchStaticMeshes} from './static-batching.js';
@@ -93,13 +93,13 @@ export function adventureController({scene,camera,renderer,city,lab,obstacles,wa
  function distance(a){return Math.hypot(player.position.x-a.x,player.position.z-a.z,a.id==='ladder'?0:(player.position.y-a.y)*1.4);}
  function nearest(){return nearestAction(actions,player.position,state?.location||'city',state?.stone??-1,state?.assembled?.length??0);}
  function collision(x,z,r=.38){return blocked(x,z,player.position.y,obstacleIndex(x,z),phaseOf(state||{assembled:[]}),state?.location||'city',r);}
- function updateMarkers(){const ids=new Set(actions.map(a=>a.id));for(const [id,g] of markers)if(!ids.has(id)){scene.remove(g);g.traverse(m=>{m.geometry?.dispose();if(m.material&&m.material!==metal&&m.material!==gold){if(Array.isArray(m.material))m.material.forEach(item=>item.dispose());else m.material.dispose();}});markers.delete(id);}for(const a of actions){let g=markers.get(a.id);if(!g){g=new T.Group();g.position.set(a.x,a.y,a.z);const colour=a.kind==='gem'?stoneColors[phaseOf(state)]:a.id==='lift'?0x7bced8:0xefbc69;const mat=new T.MeshBasicMaterial({color:colour});const ring=mesh(new T.TorusGeometry(.65,.018,6,40),mat,[0,.08,0],g);ring.rotation.x=Math.PI/2;const icon=mesh(new T.OctahedronGeometry(.1),mat,[0,1.3,0],g);g.userData.icon=icon;const halo=aura(colour,.7,g);halo.position.y=1.3;
-    if(['switch','repair','budget','test','valve'].includes(a.kind)){box(.5,.95,.38,metal,[0,.48,0],g);box(.34,.2,.025,mat,[0,.74,.2],g);}if(['pickup','deliver'].includes(a.kind))box(.6,.38,.4,gold,[0,.2,0],g);if(a.kind==='gem'){const stone=mesh(new T.IcosahedronGeometry(.19,0),new T.MeshStandardMaterial({color:colour,emissive:colour,emissiveIntensity:1.5}),[0,1,0],g);g.userData.stone=stone;}
+ function updateMarkers(){const ids=new Set(actions.map(a=>a.id));for(const [id,g] of markers)if(!ids.has(id)){scene.remove(g);g.traverse(m=>{m.geometry?.dispose();if(m.material&&m.material!==metal&&m.material!==gold){if(Array.isArray(m.material))m.material.forEach(item=>item.dispose());else m.material.dispose();}});markers.delete(id);}for(const a of actions){let g=markers.get(a.id);if(!g){g=new T.Group();g.position.set(a.x,a.y,a.z);const colour=navigationColour(a);const mat=new T.MeshBasicMaterial({color:colour});g.userData.navMaterial=mat;const icon=mesh(new T.OctahedronGeometry(.1),mat,[0,1.3,0],g);g.userData.icon=icon;const halo=aura(colour,.7,g);halo.position.y=1.3;g.userData.navHalo=halo;
+    if(['switch','repair','budget','test','valve'].includes(a.kind)){box(.5,.95,.38,metal,[0,.48,0],g);box(.34,.2,.025,mat,[0,.74,.2],g);}if(['pickup','deliver'].includes(a.kind))box(.6,.38,.4,gold,[0,.2,0],g);if(a.kind==='gem'){const stone=mesh(new T.IcosahedronGeometry(.19,0),new T.MeshStandardMaterial({color:stoneColors[phaseOf(state)],emissive:stoneColors[phaseOf(state)],emissiveIntensity:1.5}),[0,1,0],g);g.userData.stone=stone;}
     scene.add(g);markers.set(a.id,g);}g.userData.action=a;g.traverse(m=>{if(m.material?.isMeshBasicMaterial&&a.kind==='budget')m.material.color.set(a.selected?0x63deac:0xd8aeec);});}}
  function supportFloor(p){return state?.location==='lab'?LAB_Y:roofHeight(p[0],p[1],player.position.y);}
  function navigationTarget(){return navigationGoal(actions,player.position,selectedNavigation,state?.location||'city');}
  function rebuildRoute(){
-  const target=navigationTarget();if(!target){routePoints=[];lastRoutePlan=null;routeStatus='none';return;}
+  const target=navigationTarget();for(const g of markers.values()){const a=g.userData.action,colour=navigationColour(a,!!selectedNavigation&&a.id===target?.id);g.userData.navMaterial.color.set(colour);g.userData.navHalo.material.color.set(colour);}if(!target){routePoints=[];lastRoutePlan=null;routeStatus='none';return;}
   const at={x:player.position.x,z:player.position.z},level=phaseOf(state);
   if(!routeNeedsRefresh(lastRoutePlan,at,target,level,state.location,2.5))return;
   lastRoutePlan={x:at.x,z:at.z,goalId:target.id,tx:target.x,tz:target.z,level,location:state.location};
