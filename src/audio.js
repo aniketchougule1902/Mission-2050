@@ -9,6 +9,8 @@ export function audio(){let ctx,master,musicGain,timer,enabled=false,volume=.35,
  else if(kind==='unlock'){[330,440,660,880].forEach((f,i)=>tone(f,.6,.07,'sine',i*.12));}
  else if(kind==='collect'){scales[index].forEach((f,i)=>tone(f*2,.7,.12,'sine',i*.09));}
  else if(kind==='scanner'){tone(200,.5,.13,'sine',0,1200);tone(1200,.2,.08,'sine',.55,1200);}
+ else if(kind==='plant'){noise(.35,.08,450);tone(230,.42,.09,'triangle',.1,165);tone(330,.63,.07,'sine',.55,440);tone(493.88,.65,.08,'sine',1.3,659.25);}
+ else if(kind==='water'){for(let i=0;i<9;i++){noise(.21,.027,1600+i*70,i*.18);tone(330+i*23,.16,.025,'sine',i*.18,260+i*25);}tone(220,1.8,.055,'sine',.2,340);}
  else if(kind==='footstep')noise(.07,.018,350);
  else if(kind==='vehicle')tone(80,.35,.15,'sawtooth',0,160);
  else if(kind==='reactor'){[55,110,220,330,440,660].forEach((f,i)=>tone(f,5,.12,'sine',i*.18,f*1.01));noise(2,.1,700);}
