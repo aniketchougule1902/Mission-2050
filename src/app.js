@@ -16,9 +16,9 @@ const $=s=>document.querySelector(s),ui=$('#ui'),hud=$('#hud'),music=audio(),sem
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,conversation=createConversation($('#radio'),hz=>music.effect('conversation_blip',hz),{reduced,speak:(text,who)=>music.speak(text,who),silence:()=>music.silence()});
 const explored=new Set(),trail=[],mapView={zoom:1,x:0,z:0},compass=createNavigationCompass($('#compass'));let mapPin=null;
 let audioBeat=0,progressBand=-1,trafficSoundTime=0;
-let cineStage='',a=freshAdventure(),settings={quality:'balanced',locale:'en',text:false,volume:.8},screen='home',previous='city',running=false,world,frameInfo={},busy=false,work=0,workId='',releaseNeeded=false,toastTimer,events=[],introTime=0,serverChecked=false,taskBeat=0,heatCooldown=0,workLatch=false;
+let cineStage='',a=freshAdventure(),settings={quality:'balanced',locale:'en',text:false,volume:1},screen='home',previous='city',running=false,world,frameInfo={},busy=false,work=0,workId='',releaseNeeded=false,toastTimer,events=[],introTime=0,serverChecked=false,taskBeat=0,heatCooldown=0,workLatch=false;
 try{Object.assign(settings,JSON.parse(localStorage.getItem('m2050.v3.settings')||'{}'));a=restoreAdventure(localStorage.getItem('m2050.adventure.v3'))||a;const visited=JSON.parse(localStorage.getItem('m2050.explored.v3')||'[]');if(Array.isArray(visited))for(const cell of visited.slice(0,1600))if(typeof cell==='string'&&/^-?\d+,-?\d+$/.test(cell))explored.add(cell);}catch{}
-if(settings.audioVersion!==1){settings.volume=.8;settings.audioVersion=1;}
+if(settings.audioVersion!==2){settings.volume=1;settings.audioVersion=2;}
 if(settings.renderVersion!==2){settings.quality='balanced';settings.renderVersion=2;}
 setLocale(settings.locale);$('#locale').value=settings.locale;music.volume(settings.volume);
 function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}const tr=k=>esc(t(k));
@@ -139,7 +139,7 @@ function prepareWorld(){
  try{
   world=createWorld($('#world'),fps=>$('#fps').textContent=settings.text?t('adv.textmode'):fps+' FPS',{quality:settings.quality});
   world.hooks(tick,(name,props)=>{
-   if(name==='footstep')music.effect(world.keys.has('Shift')?'runstep':'footstep');
+   if(name==='footstep')music.effect(props.running?'runstep':'footstep',props);
    else if(['jump','land','ladder_climb'].includes(name))music.effect(name);
    else if(name==='brake')music.effect('brake_screech');
    else if(name==='scanner')music.effect('scanner');
